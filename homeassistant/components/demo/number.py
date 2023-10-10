@@ -17,6 +17,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the demo number platform."""
+    MDI_SQUARE_WAVE = "mdi:square-wave"
     async_add_entities(
         [
             DemoNumber(
@@ -31,7 +32,7 @@ async def async_setup_entry(
                 "pwm1",
                 "PWM 1",
                 0.42,
-                "mdi:square-wave",
+                MDI_SQUARE_WAVE,
                 False,
                 native_min_value=0.0,
                 native_max_value=1.0,
@@ -42,7 +43,7 @@ async def async_setup_entry(
                 "large_range",
                 "Large Range",
                 500,
-                "mdi:square-wave",
+                MDI_SQUARE_WAVE,
                 False,
                 native_min_value=1,
                 native_max_value=1000,
@@ -52,7 +53,7 @@ async def async_setup_entry(
                 "small_range",
                 "Small Range",
                 128,
-                "mdi:square-wave",
+                MDI_SQUARE_WAVE,
                 False,
                 native_min_value=1,
                 native_max_value=255,

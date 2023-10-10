@@ -16,6 +16,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Demo text platform."""
+    MDI_TEXT = "mdi:text"
     async_add_entities(
         [
             DemoText(
@@ -27,14 +28,14 @@ async def async_setup_entry(
             DemoText(
                 unique_id="password",
                 device_name="Password",
-                icon="mdi:text",
+                icon=MDI_TEXT,
                 native_value="Hello world",
                 mode=TextMode.PASSWORD,
             ),
             DemoText(
                 unique_id="text_1_to_5_char",
                 device_name="Text with 1 to 5 characters",
-                icon="mdi:text",
+                icon=MDI_TEXT,
                 native_value="Hello",
                 native_min=1,
                 native_max=5,
@@ -42,7 +43,7 @@ async def async_setup_entry(
             DemoText(
                 unique_id="text_lowercase",
                 device_name="Text with only lower case characters",
-                icon="mdi:text",
+                icon=MDI_TEXT,
                 native_value="world",
                 pattern=r"[a-z]+",
             ),
