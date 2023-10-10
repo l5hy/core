@@ -13,10 +13,7 @@ SUPPORT_FLAGS = SirenEntityFeature.TURN_OFF | SirenEntityFeature.TURN_ON
 
 
 async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
     async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the Demo siren devices."""
     async_add_entities(
@@ -34,7 +31,6 @@ async def async_setup_platform(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Demo siren devices config entry."""

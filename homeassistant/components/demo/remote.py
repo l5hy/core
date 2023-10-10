@@ -14,7 +14,6 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Demo config entry."""
@@ -22,10 +21,7 @@ async def async_setup_entry(
 
 
 def setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
     add_entities_callback: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the demo remotes."""
     add_entities_callback(
