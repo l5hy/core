@@ -142,18 +142,7 @@ class BroadlinkRemote(BroadlinkEntity, RemoteEntity, RestoreEntity):
                 codes = [cmd[4:]]
 
             else:
-                if device is None:
-                    raise ValueError("You need to specify a device")
-
-                try:
-                    codes = self._codes[device][cmd]
-                except KeyError as err:
-                    raise ValueError(f"Command not found: {repr(cmd)}") from err
-
-                if isinstance(codes, list):
-                    codes = codes[:]
-                else:
-                    codes = [codes]
+                codes = self.extract_codes_part(codes, device, cmd)
 
             for idx, code in enumerate(codes):
                 try:
@@ -163,6 +152,21 @@ class BroadlinkRemote(BroadlinkEntity, RemoteEntity, RestoreEntity):
 
             code_list.append(codes)
         return code_list
+
+    def extract_codes_part(self, codes, device, cmd):
+        if device is None:
+            raise ValueError("You need to specify a device")
+
+        try:
+            codes = self._codes[device][cmd]
+        except KeyError as err:
+            raise ValueError(f"Command not found: {repr(cmd)}") from err
+
+        if isinstance(codes, list):
+            codes = codes[:]
+        else:
+            codes = [codes]
+        return codes
 
     @callback
     def _get_codes(self):
@@ -222,19 +226,7 @@ class BroadlinkRemote(BroadlinkEntity, RemoteEntity, RestoreEntity):
         if not self._storage_loaded:
             await self._async_load_storage()
 
-        try:
-            code_list = self._extract_codes(commands, subdevice)
-        except ValueError as err:
-            _LOGGER.error("Failed to call %s: %s", service, err)
-            raise
-
-        rf_flags = {0xB2, 0xD7}
-        if not hasattr(device.api, "sweep_frequency") and any(
-            c[0] in rf_flags for codes in code_list for c in codes
-        ):
-            err_msg = f"{self.entity_id} doesn't support sending RF commands"
-            _LOGGER.error("Failed to call %s: %s", service, err_msg)
-            raise ValueError(err_msg)
+        code_list = self.async_send_command_part(commands, subdevice, service, device)
 
         at_least_one_sent = False
         for _, codes in product(range(repeat), code_list):
@@ -258,6 +250,22 @@ class BroadlinkRemote(BroadlinkEntity, RemoteEntity, RestoreEntity):
 
         if at_least_one_sent:
             self._flag_storage.async_delay_save(self._get_flags, FLAG_SAVE_DELAY)
+
+    def async_send_command_part(self, commands, subdevice, service, device):
+        try:
+            code_list = self._extract_codes(commands, subdevice)
+        except ValueError as err:
+            _LOGGER.error("Failed to call %s: %s", service, err)
+            raise
+
+        rf_flags = {0xB2, 0xD7}
+        if not hasattr(device.api, "sweep_frequency") and any(
+            c[0] in rf_flags for codes in code_list for c in codes
+        ):
+            err_msg = f"{self.entity_id} doesn't support sending RF commands"
+            _LOGGER.error("Failed to call %s: %s", service, err_msg)
+            raise ValueError(err_msg)
+        return code_list
 
     async def async_learn_command(self, **kwargs: Any) -> None:
         """Learn a list of commands from a remote."""
