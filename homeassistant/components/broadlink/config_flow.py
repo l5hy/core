@@ -82,9 +82,22 @@ class BroadlinkFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_device(device)
         return await self.async_step_auth()
 
+    def os_errors(self, err, errors):
+        if err.errno in {errno.EINVAL, socket.EAI_NONAME}:
+            errors["base"] = "invalid_host"
+            err_msg = "Invalid hostname or IP address"
+        elif err.errno == errno.ENETUNREACH:
+            errors["base"] = "cannot_connect"
+            err_msg = str(err)
+        else:
+            errors["base"] = "unknown"
+            err_msg = str(err)
+        return err_msg
+
     async def async_step_user(self, user_input=None):
         """Handle a flow initiated by the user."""
         errors = {}
+
 
         if user_input is not None:
             host = user_input[CONF_HOST]
@@ -99,15 +112,8 @@ class BroadlinkFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 err_msg = "Device not found"
 
             except OSError as err:
-                if err.errno in {errno.EINVAL, socket.EAI_NONAME}:
-                    errors["base"] = "invalid_host"
-                    err_msg = "Invalid hostname or IP address"
-                elif err.errno == errno.ENETUNREACH:
-                    errors["base"] = "cannot_connect"
-                    err_msg = str(err)
-                else:
-                    errors["base"] = "unknown"
-                    err_msg = str(err)
+                err_msg = self.os_errors(err, errors)
+
 
             else:
                 device.timeout = timeout
