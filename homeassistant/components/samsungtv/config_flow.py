@@ -218,10 +218,10 @@ class SamsungTVConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._name = name.replace("[TV] ", "") if name else device_type
         self._title = f"{self._name} ({self._model})"
         self._udn = _strip_uuid(dev_info.get("udn", info["id"]))
-        if mac := mac_from_device_info(info):
-            self._mac = mac
-        elif mac := await self.hass.async_add_executor_job(
-            partial(getmac.get_mac_address, ip=self._host)
+        if (mac := mac_from_device_info(info)) or (
+            mac := await self.hass.async_add_executor_job(
+                partial(getmac.get_mac_address, ip=self._host)
+            )
         ):
             self._mac = mac
         return True
