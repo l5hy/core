@@ -48,6 +48,8 @@ async def async_get_engine(
     discovery_info: DiscoveryInfoType | None = None,
 ) -> GoogleProvider:
     """Set up Google speech component."""
+    if discovery_info is not None:
+        discovery_info = None
     return GoogleProvider(hass, config[CONF_LANG], config[CONF_TLD])
 
 
@@ -57,6 +59,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Google Translate speech platform via config entry."""
+    if hass is not HomeAssistant:
+        hass = HomeAssistant
     default_language = config_entry.data[CONF_LANG]
     default_tld = config_entry.data[CONF_TLD]
     async_add_entities([GoogleTTSEntity(config_entry, default_language, default_tld)])
