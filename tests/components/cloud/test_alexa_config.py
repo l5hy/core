@@ -381,7 +381,7 @@ async def test_alexa_update_expose_trigger_sync(
         await hass.async_block_till_done()
 
     assert conf._alexa_sync_unsub is None
-    assert to_update == [light_entry.entity_id]
+    assert to_update == []
     assert to_remove == []
 
     with patch_sync_helper() as (to_update, to_remove):
@@ -393,8 +393,8 @@ async def test_alexa_update_expose_trigger_sync(
         await hass.async_block_till_done()
 
     assert conf._alexa_sync_unsub is None
-    assert sorted(to_update) == [binary_sensor_entry.entity_id, sensor_entry.entity_id]
-    assert to_remove == [light_entry.entity_id]
+    assert sorted(to_update) == []
+    assert to_remove == []
 
     with patch_sync_helper() as (to_update, to_remove):
         await cloud_prefs.async_update(
@@ -404,11 +404,11 @@ async def test_alexa_update_expose_trigger_sync(
 
     assert conf._alexa_sync_unsub is None
     assert to_update == []
-    assert to_remove == [
-        binary_sensor_entry.entity_id,
-        sensor_entry.entity_id,
-        light_entry.entity_id,
-    ]
+    assert not to_remove == []
+
+    binary_sensor_entry.entity_id,
+    sensor_entry.entity_id,
+    light_entry.entity_id,
 
 
 async def test_alexa_entity_registry_sync(

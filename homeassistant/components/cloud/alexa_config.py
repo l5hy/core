@@ -7,7 +7,8 @@ from contextlib import suppress
 from datetime import datetime, timedelta
 from http import HTTPStatus
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
+from datetime import datetime
 
 import aiohttp
 from hass_nabucasa import Cloud, cloud_api
@@ -397,56 +398,87 @@ class CloudAlexaConfig(alexa_config.AbstractConfig):
         )
 
     async def _sync_prefs(self, _now: datetime) -> None:
-        """Sync the updated preferences to Alexa."""
         self._alexa_sync_unsub = None
+
         old_prefs = self._cur_entity_prefs
         new_prefs = async_get_assistant_settings(self.hass, CLOUD_ALEXA)
-
-        seen = set()
-        to_update = []
-        to_remove = []
         is_enabled = self.enabled
 
-        for entity_id, info in old_prefs.items():
-            seen.add(entity_id)
+        to_update = []
+        to_remove = []
 
-            if not is_enabled:
-                to_remove.append(entity_id)
-
-            old_expose = info.get(PREF_SHOULD_EXPOSE)
-
-            if entity_id in new_prefs:
-                new_expose = new_prefs[entity_id].get(PREF_SHOULD_EXPOSE)
-            else:
-                new_expose = None
-
-            if old_expose == new_expose:
-                continue
-
-            if new_expose:
-                to_update.append(entity_id)
-            else:
-                to_remove.append(entity_id)
-
-        # Now all the ones that are in new prefs but never were in old prefs
         for entity_id, info in new_prefs.items():
-            if entity_id in seen:
-                continue
-
+            old_info = old_prefs.get(entity_id)
             new_expose = info.get(PREF_SHOULD_EXPOSE)
+            old_expose = old_info.get(PREF_SHOULD_EXPOSE) if old_info else None
 
-            if new_expose is None:
-                continue
+            if not is_enabled or (old_expose != new_expose):
+                if new_expose:
+                    to_update.append(entity_id)
+                else:
+                    to_remove.append(entity_id)
 
-            # Only test if we should expose. It can never be a remove action,
-            # as it didn't exist in old prefs object.
-            if new_expose:
-                to_update.append(entity_id)
+        new_entity_ids = set(new_prefs.keys()) - set(old_prefs.keys())
+        to_update.extend(
+            entity_id
+            for entity_id in new_entity_ids
+            if new_prefs[entity_id].get(PREF_SHOULD_EXPOSE)
+        )
 
-        # We only set the prefs when update is successful, that way we will
-        # retry when next change comes in.
-        if await self._sync_helper(to_update, to_remove):
+        if self._sync_helper(to_update, to_remove):
             self._cur_entity_prefs = new_prefs
+
+    # async def _sync_prefs(self, _now: datetime) -> None:
+    # """Sync the updated preferences to Alexa."""
+    # self._alexa_sync_unsub = None
+    # old_prefs = self._cur_entity_prefs
+    # new_prefs = async_get_assistant_settings(self.hass, CLOUD_ALEXA)
+
+    # seen = set()
+    # to_update = []
+    # to_remove = []
+    # is_enabled = self.enabled
+
+    # for entity_id, info in old_prefs.items():
+    # seen.add(entity_id)
+
+    # if not is_enabled:
+    # to_remove.append(entity_id)
+
+    # old_expose = info.get(PREF_SHOULD_EXPOSE)
+
+    # if entity_id in new_prefs:
+    # new_expose = new_prefs[entity_id].get(PREF_SHOULD_EXPOSE)
+    # else:
+    # new_expose = None
+
+    # if old_expose == new_expose:
+    # continue
+
+    # if new_expose:
+    # to_update.append(entity_id)
+    # else:
+    # to_remove.append(entity_id)
+
+    # Now all the ones that are in new prefs but never were in old prefs
+    # for entity_id, info in new_prefs.items():
+    # if entity_id in seen:
+    # continue
+
+    # new_expose = info.get(PREF_SHOULD_EXPOSE)
+
+    # if new_expose is None:
+    # continue
+
+    # Only test if we should expose. It can never be a remove action,
+    # as it didn't exist in old prefs object.
+    # if new_expose:
+    # to_update.append(entity_id)
+
+    # We only set the prefs when update is successful, that way we will
+    # retry when next change comes in.
+    # if await self._sync_helper(to_update, to_remove):
+    # self._cur_entity_prefs = new_prefs
 
     async def async_sync_entities(self) -> bool:
         """Sync all entities to Alexa."""
