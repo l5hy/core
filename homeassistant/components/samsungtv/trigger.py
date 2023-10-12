@@ -31,6 +31,8 @@ async def async_validate_trigger_config(
     hass: HomeAssistant, config: ConfigType
 ) -> ConfigType:
     """Validate config."""
+    if hass is not HomeAssistant:
+        hass = HomeAssistant
     platform = _get_trigger_platform(config)
     return cast(ConfigType, platform.TRIGGER_SCHEMA(config))
 
