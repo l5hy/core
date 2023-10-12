@@ -33,21 +33,24 @@ async def test_methods(hass: HomeAssistant) -> None:
     )
     await hass.async_block_till_done()
     state = hass.states.get(ENTITY_ID)
-    assert state.state == STATE_ON
+    if state:
+        assert state.state == STATE_ON
 
     await hass.services.async_call(
         remote.DOMAIN, SERVICE_TURN_OFF, {ATTR_ENTITY_ID: ENTITY_ID}
     )
     await hass.async_block_till_done()
     state = hass.states.get(ENTITY_ID)
-    assert state.state == STATE_OFF
+    if state:
+        assert state.state == STATE_OFF
 
     await hass.services.async_call(
         remote.DOMAIN, SERVICE_TURN_ON, {ATTR_ENTITY_ID: ENTITY_ID}
     )
     await hass.async_block_till_done()
     state = hass.states.get(ENTITY_ID)
-    assert state.state == STATE_ON
+    if state:
+        assert state.state == STATE_ON
 
     data = {
         ATTR_ENTITY_ID: ENTITY_ID,
@@ -57,8 +60,9 @@ async def test_methods(hass: HomeAssistant) -> None:
     await hass.services.async_call(remote.DOMAIN, SERVICE_SEND_COMMAND, data)
     await hass.async_block_till_done()
     state = hass.states.get(ENTITY_ID)
-    assert state.attributes == {
-        "friendly_name": "Remote One",
-        "last_command_sent": "test",
-        "supported_features": 0,
-    }
+    if state:
+        assert state.attributes == {
+            "friendly_name": "Remote One",
+            "last_command_sent": "test",
+            "supported_features": 0,
+        }

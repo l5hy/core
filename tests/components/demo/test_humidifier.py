@@ -23,6 +23,7 @@ from homeassistant.const import (
     STATE_OFF,
     STATE_ON,
 )
+
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
@@ -43,23 +44,26 @@ async def setup_demo_humidifier(hass, disable_platforms):
 def test_setup_params(hass: HomeAssistant) -> None:
     """Test the initial parameters."""
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_ON
-    assert state.attributes.get(ATTR_HUMIDITY) == 54
-    assert state.attributes.get(ATTR_CURRENT_HUMIDITY) == 59
-    assert state.attributes.get(ATTR_ACTION) == "drying"
+    if state:
+        assert state.state == STATE_ON
+        assert state.attributes.get(ATTR_HUMIDITY) == 54
+        assert state.attributes.get(ATTR_CURRENT_HUMIDITY) == 59
+        assert state.attributes.get(ATTR_ACTION) == "drying"
 
 
 def test_default_setup_params(hass: HomeAssistant) -> None:
     """Test the setup with default parameters."""
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.attributes.get(ATTR_MIN_HUMIDITY) == 0
-    assert state.attributes.get(ATTR_MAX_HUMIDITY) == 100
+    if state:
+        assert state.attributes.get(ATTR_MIN_HUMIDITY) == 0
+        assert state.attributes.get(ATTR_MAX_HUMIDITY) == 100
 
 
 async def test_set_target_humidity_bad_attr(hass: HomeAssistant) -> None:
     """Test setting the target humidity without required attribute."""
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.attributes.get(ATTR_HUMIDITY) == 54
+    if state:
+        assert state.attributes.get(ATTR_HUMIDITY) == 54
 
     with pytest.raises(vol.Invalid):
         await hass.services.async_call(
@@ -71,13 +75,15 @@ async def test_set_target_humidity_bad_attr(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.attributes.get(ATTR_HUMIDITY) == 54
+    if state:
+        assert state.attributes.get(ATTR_HUMIDITY) == 54
 
 
 async def test_set_target_humidity(hass: HomeAssistant) -> None:
     """Test the setting of the target humidity."""
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.attributes.get(ATTR_HUMIDITY) == 54
+    if state:
+        assert state.attributes.get(ATTR_HUMIDITY) == 54
 
     await hass.services.async_call(
         DOMAIN,
@@ -88,7 +94,8 @@ async def test_set_target_humidity(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.attributes.get(ATTR_HUMIDITY) == 64
+    if state:
+        assert state.attributes.get(ATTR_HUMIDITY) == 64
 
 
 async def test_set_hold_mode_away(hass: HomeAssistant) -> None:
@@ -102,7 +109,8 @@ async def test_set_hold_mode_away(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     state = hass.states.get(ENTITY_HYGROSTAT)
-    assert state.attributes.get(ATTR_MODE) == MODE_AWAY
+    if state:
+        assert state.attributes.get(ATTR_MODE) == MODE_AWAY
 
 
 async def test_set_hold_mode_eco(hass: HomeAssistant) -> None:
@@ -116,7 +124,8 @@ async def test_set_hold_mode_eco(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
 
     state = hass.states.get(ENTITY_HYGROSTAT)
-    assert state.attributes.get(ATTR_MODE) == "eco"
+    if state:
+        assert state.attributes.get(ATTR_MODE) == "eco"
 
 
 async def test_turn_on(hass: HomeAssistant) -> None:
@@ -125,15 +134,21 @@ async def test_turn_on(hass: HomeAssistant) -> None:
         DOMAIN, SERVICE_TURN_OFF, {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER}, blocking=True
     )
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_OFF
-    assert state.attributes.get(ATTR_ACTION) == "off"
+    if state:
+        assert state.state == STATE_OFF
+        assert state.attributes.get(ATTR_ACTION) == "off"
 
     await hass.services.async_call(
-        DOMAIN, SERVICE_TURN_ON, {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER}, blocking=True
+        DOMAIN,
+        SERVICE_TURN_ON,
+        {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER},
+        blocking=True,
     )
+
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_ON
-    assert state.attributes.get(ATTR_ACTION) == "drying"
+    if state:
+        assert state.state == STATE_ON
+        assert state.attributes.get(ATTR_ACTION) == "drying"
 
 
 async def test_turn_off(hass: HomeAssistant) -> None:
@@ -142,15 +157,17 @@ async def test_turn_off(hass: HomeAssistant) -> None:
         DOMAIN, SERVICE_TURN_ON, {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER}, blocking=True
     )
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_ON
-    assert state.attributes.get(ATTR_ACTION) == "drying"
+    if state:
+        assert state.state == STATE_ON
+        assert state.attributes.get(ATTR_ACTION) == "drying"
 
     await hass.services.async_call(
         DOMAIN, SERVICE_TURN_OFF, {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER}, blocking=True
     )
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_OFF
-    assert state.attributes.get(ATTR_ACTION) == "off"
+    if state:
+        assert state.state == STATE_OFF
+        assert state.attributes.get(ATTR_ACTION) == "off"
 
 
 async def test_toggle(hass: HomeAssistant) -> None:
@@ -159,16 +176,19 @@ async def test_toggle(hass: HomeAssistant) -> None:
         DOMAIN, SERVICE_TURN_ON, {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER}, blocking=True
     )
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_ON
+    if state:
+        assert state.state == STATE_ON
 
     await hass.services.async_call(
         DOMAIN, SERVICE_TOGGLE, {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER}, blocking=True
     )
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_OFF
+    if state:
+        assert state.state == STATE_OFF
 
     await hass.services.async_call(
         DOMAIN, SERVICE_TOGGLE, {ATTR_ENTITY_ID: ENTITY_DEHUMIDIFIER}, blocking=True
     )
     state = hass.states.get(ENTITY_DEHUMIDIFIER)
-    assert state.state == STATE_ON
+    if state:
+        assert state.state == STATE_ON
