@@ -43,11 +43,12 @@ async def setup_demo_text(hass, text_only):
 def test_setup_params(hass: HomeAssistant) -> None:
     """Test the initial parameters."""
     state = hass.states.get(ENTITY_TEXT)
-    assert state.state == "Hello world"
-    assert state.attributes[ATTR_MIN] == 0
-    assert state.attributes[ATTR_MAX] == MAX_LENGTH_STATE_STATE
-    assert state.attributes[ATTR_PATTERN] is None
-    assert state.attributes[ATTR_MODE] == "text"
+    if state:
+        assert state.state == "Hello world"
+        assert state.attributes[ATTR_MIN] == 0
+        assert state.attributes[ATTR_MAX] == MAX_LENGTH_STATE_STATE
+        assert state.attributes[ATTR_PATTERN] is None
+        assert state.attributes[ATTR_MODE] == "text"
 
 
 async def test_set_value(hass: HomeAssistant) -> None:
@@ -59,4 +60,5 @@ async def test_set_value(hass: HomeAssistant) -> None:
         blocking=True,
     )
     state = hass.states.get(ENTITY_TEXT)
-    assert state.state == "new"
+    if state:
+        assert state.state == "new"

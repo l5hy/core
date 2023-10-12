@@ -87,6 +87,11 @@ REST_EXCEPTIONS = (HttpApiError, AsyncioTimeoutError, ResponseError)
 _RemoteT = TypeVar("_RemoteT", SamsungTVWSAsyncRemote, SamsungTVEncryptedWSAsyncRemote)
 _CommandT = TypeVar("_CommandT", SamsungTVCommand, SamsungTVEncryptedCommand)
 
+tryconfig = "Try config: %s"
+working_config = "Working config: %s"
+working_but_unsuported = "Working but unsupported config: %s, error: %s"
+failed_remote = "Failed to get remote for %s: %s"
+
 
 def mac_from_device_info(info: dict[str, Any]) -> str | None:
     """Extract the mac address from the device info."""
@@ -308,15 +313,15 @@ class SamsungTVLegacyBridge(SamsungTVBridge):
             CONF_TIMEOUT: TIMEOUT_REQUEST,
         }
         try:
-            LOGGER.debug("Try config: %s", config)
+            LOGGER.debug(tryconfig, config)
             with Remote(config.copy()):
-                LOGGER.debug("Working config: %s", config)
+                LOGGER.debug(working_config, config)
                 return RESULT_SUCCESS
         except AccessDenied:
             LOGGER.debug("Working but denied config: %s", config)
             return RESULT_AUTH_MISSING
         except UnhandledResponse as err:
-            LOGGER.debug("Working but unsupported config: %s, error: %s", config, err)
+            LOGGER.debug(working_but_unsuported, config, err)
             return RESULT_NOT_SUPPORTED
         except (ConnectionClosed, OSError) as err:
             LOGGER.debug("Failing config: %s, error: %s", config, err)
@@ -515,7 +520,7 @@ class SamsungTVWSBridge(
 
             result = None
             try:
-                LOGGER.debug("Try config: %s", config)
+                LOGGER.debug(tryconfig, config)
                 async with SamsungTVWSAsyncRemote(
                     host=self.host,
                     port=self.port,
@@ -525,7 +530,7 @@ class SamsungTVWSBridge(
                 ) as remote:
                     await remote.open()
                     self.token = remote.token
-                    LOGGER.debug("Working config: %s", config)
+                    LOGGER.debug(working_config, config)
                     return RESULT_SUCCESS
             except ConnectionClosedError as err:
                 LOGGER.info(
@@ -539,18 +544,15 @@ class SamsungTVWSBridge(
                 )
                 result = RESULT_NOT_SUPPORTED
             except WebSocketException as err:
-                LOGGER.debug(
-                    "Working but unsupported config: %s, error: %s", config, err
-                )
+                LOGGER.debug(working_but_unsuported, config, err)
                 result = RESULT_NOT_SUPPORTED
             except UnauthorizedError as err:
                 LOGGER.debug("Failing config: %s, %s error: %s", config, type(err), err)
                 return RESULT_AUTH_MISSING
             except (ConnectionFailure, OSError, AsyncioTimeoutError) as err:
                 LOGGER.debug("Failing config: %s, %s error: %s", config, type(err), err)
-        else:  # noqa: PLW0120
-            if result:
-                return result
+        if result:
+            return result
 
         return RESULT_CANNOT_CONNECT
 
@@ -610,7 +612,7 @@ class SamsungTVWSBridge(
                 self._remote = None
             except ConnectionClosedError as err:
                 LOGGER.info(
-                    "Failed to get remote for %s: %s",
+                    failed_remote,
                     self.host,
                     repr(err),
                 )
@@ -626,7 +628,7 @@ class SamsungTVWSBridge(
                 )
                 self._remote = None
             except (WebSocketException, AsyncioTimeoutError, OSError) as err:
-                LOGGER.debug("Failed to get remote for %s: %s", self.host, repr(err))
+                LOGGER.debug(failed_remote, self.host, repr(err))
                 self._remote = None
             else:
                 LOGGER.debug("Created SamsungTVWSBridge for %s", self.host)
@@ -723,7 +725,7 @@ class SamsungTVEncryptedBridge(
         }
 
         try:
-            LOGGER.debug("Try config: %s", config)
+            LOGGER.debug(tryconfig, config)
             async with SamsungTVEncryptedWSAsyncRemote(
                 host=self.host,
                 port=self.port,
@@ -734,12 +736,12 @@ class SamsungTVEncryptedBridge(
             ) as remote:
                 await remote.start_listening()
         except WebSocketException as err:
-            LOGGER.debug("Working but unsupported config: %s, error: %s", config, err)
+            LOGGER.debug(working_but_unsuported, config, err)
             return RESULT_NOT_SUPPORTED
         except (OSError, AsyncioTimeoutError, ConnectionFailure) as err:
             LOGGER.debug("Failing config: %s, error: %s", config, err)
         else:
-            LOGGER.debug("Working config: %s", config)
+            LOGGER.debug(working_config, config)
             return RESULT_SUCCESS
 
         return RESULT_CANNOT_CONNECT
@@ -795,7 +797,7 @@ class SamsungTVEncryptedBridge(
             try:
                 await self._remote.start_listening()
             except (WebSocketException, AsyncioTimeoutError, OSError) as err:
-                LOGGER.debug("Failed to get remote for %s: %s", self.host, repr(err))
+                LOGGER.debug(failed_remote, self.host, repr(err))
                 self._remote = None
             else:
                 LOGGER.debug("Created SamsungTVEncryptedBridge for %s", self.host)
