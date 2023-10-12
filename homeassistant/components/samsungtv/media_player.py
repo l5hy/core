@@ -172,6 +172,13 @@ class SamsungTVDevice(SamsungTVEntity, MediaPlayerEntity):
 
         startup_tasks: list[Coroutine[Any, Any, Any]] = []
 
+        self.async_update_part(startup_tasks)
+
+        if startup_tasks:
+            await asyncio.gather(*startup_tasks)
+        self._update_from_upnp()
+
+    def async_update_part(self, startup_tasks):
         if not self._app_list_event.is_set():
             startup_tasks.append(self._async_startup_app_list())
 
@@ -180,10 +187,7 @@ class SamsungTVDevice(SamsungTVEntity, MediaPlayerEntity):
         if not self._dmr_device and self._ssdp_rendering_control_location:
             startup_tasks.append(self._async_startup_dmr())
 
-        if startup_tasks:
-            await asyncio.gather(*startup_tasks)
 
-        self._update_from_upnp()
 
     @callback
     def _update_from_upnp(self) -> bool:

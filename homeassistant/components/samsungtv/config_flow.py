@@ -364,19 +364,7 @@ class SamsungTVConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             or update_mac
             or update_model
         ):
-            if update_ssdp_rendering_control_location:
-                data[
-                    CONF_SSDP_RENDERING_CONTROL_LOCATION
-                ] = self._ssdp_rendering_control_location
-            if update_ssdp_main_tv_agent_location:
-                data[
-                    CONF_SSDP_MAIN_TV_AGENT_LOCATION
-                ] = self._ssdp_main_tv_agent_location
-            if update_mac:
-                data[CONF_MAC] = self._mac
-            if update_model:
-                data[CONF_MODEL] = self._model
-            entry_kw_args["data"] = data
+           self.async_update_existing_matching_entry_part(update_ssdp_rendering_control_location, data, update_ssdp_main_tv_agent_location, update_mac, update_model, entry_kw_args)
         if not entry_kw_args:
             return None
         LOGGER.debug("Updating existing config entry with %s", entry_kw_args)
@@ -388,7 +376,20 @@ class SamsungTVConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.hass.config_entries.async_reload(entry.entry_id)
             )
         return entry
-
+    def async_update_existing_matching_entry_part(self, update_ssdp_rendering_control_location, data, update_ssdp_main_tv_agent_location, update_mac, update_model, entry_kw_args):
+        if update_ssdp_rendering_control_location:
+            data[
+                CONF_SSDP_RENDERING_CONTROL_LOCATION
+            ] = self._ssdp_rendering_control_location
+        if update_ssdp_main_tv_agent_location:
+            data[
+                CONF_SSDP_MAIN_TV_AGENT_LOCATION
+            ] = self._ssdp_main_tv_agent_location
+        if update_mac:
+            data[CONF_MAC] = self._mac
+        if update_model:
+            data[CONF_MODEL] = self._model
+        entry_kw_args["data"] = data
     @callback
     def _async_start_discovery_with_mac_address(self) -> None:
         """Start discovery."""

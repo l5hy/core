@@ -631,18 +631,21 @@ class SamsungTVWSBridge(
                 LOGGER.debug(failed_remote, self.host, repr(err))
                 self._remote = None
             else:
-                LOGGER.debug("Created SamsungTVWSBridge for %s", self.host)
                 if self._device_info is None:
-                    # Initialise device info on first connect
+            # Initialise device info on first connect
                     await self.async_device_info()
-                if self.token != self._remote.token:
-                    LOGGER.info(
-                        "SamsungTVWSBridge has provided a new token %s",
-                        self._remote.token,
-                    )
-                    self.token = self._remote.token
-                    self._notify_update_config_entry({CONF_TOKEN: self.token})
+                self.async_get_remote_under_lock_part()
         return self._remote
+
+    async def async_get_remote_under_lock_part(self):
+        LOGGER.debug("Created SamsungTVWSBridge for %s", self.host)
+        if self.token != self._remote.token:
+            LOGGER.info(
+                "SamsungTVWSBridge has provided a new token %s",
+                self._remote.token,
+            )
+            self.token = self._remote.token
+            self._notify_update_config_entry({CONF_TOKEN: self.token})
 
     def _remote_event(self, event: str, response: Any) -> None:
         """Received event from remote websocket."""
