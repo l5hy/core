@@ -72,6 +72,7 @@ class DemoProviderEntity(SpeechToTextEntity):
 
         # Read available data
         async for _ in stream:
+            # continue
             pass
 
         return SpeechResult("Turn the Kitchen Lights on", SpeechResultState.SUCCESS)
