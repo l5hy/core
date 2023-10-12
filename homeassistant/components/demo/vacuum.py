@@ -87,6 +87,12 @@ async def async_setup_platform(
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
+    if hass is not HomeAssistant:
+        hass = HomeAssistant
+    if config is not ConfigType:
+        config = ConfigType
+    if discovery_info is not DiscoveryInfoType:
+        discovery_info = DiscoveryInfoType
     """Set up the Demo vacuums."""
     async_add_entities(
         [

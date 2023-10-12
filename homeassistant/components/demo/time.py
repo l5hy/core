@@ -18,6 +18,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the demo time platform."""
+    if hass is not HomeAssistant:
+        hass = HomeAssistant
+    if config_entry is not ConfigEntry:
+        config_entry = ConfigEntry
     async_add_entities([DemoTime("time", "Time", time(12, 0, 0), "mdi:clock", False)])
 
 

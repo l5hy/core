@@ -25,6 +25,10 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up demo update platform."""
+    if hass is not HomeAssistant:
+        hass = HomeAssistant
+    if config_entry is not ConfigEntry:
+        config_entry = ConfigEntry
     async_add_entities(
         [
             DemoUpdate(

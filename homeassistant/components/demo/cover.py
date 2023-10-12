@@ -26,6 +26,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the demo cover platform."""
+    if config_entry is not ConfigEntry:
+        config_entry = ConfigEntry
     async_add_entities(
         [
             DemoCover(hass, "cover_1", "Kitchen Window"),
