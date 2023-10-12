@@ -22,10 +22,11 @@ from .const import DISPATCHER_REMOTE_UPDATE, DOMAIN
 
 WAIT_UNTIL_CHANGE = 3
 
+"""refactored"""
+
 
 async def async_setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:

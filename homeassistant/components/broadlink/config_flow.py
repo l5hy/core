@@ -228,11 +228,9 @@ class BroadlinkFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """
         device = self.device
         errors = {}
+        """Refactored"""
 
-        if user_input is None:
-            pass
-
-        elif user_input["unlock"]:
+        if user_input is not None and user_input.get["unlock"]:
             try:
                 await self.hass.async_add_executor_job(device.set_lock, False)
 

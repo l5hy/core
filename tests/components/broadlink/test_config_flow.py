@@ -1,16 +1,25 @@
 """Test the Broadlink config flow."""
 import errno
 import socket
-from unittest.mock import call, patch
 
+# import unittest
+from unittest.mock import call, patch
 import broadlink.exceptions as blke
+from mock import Mock
 import pytest
 
+# import asyncio
 from homeassistant import config_entries
 from homeassistant.components import dhcp
+from homeassistant.components.broadlink.config_flow import BroadlinkFlowHandler
 from homeassistant.components.broadlink.const import DOMAIN
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_TIMEOUT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+
+# from custom_components.my_component import DEVICE_HELLO
+# from custom_components.my_component.device import get_device
+
 
 from . import get_device
 
@@ -27,11 +36,12 @@ def broadlink_setup_fixture():
         yield
 
 
-async def test_flow_user_works(hass: HomeAssistant) -> None:
+# ==================================
+async def test_flow_user_works_new(hass: HomeAssistant) -> None:  #
     """Test a config flow initiated by the user.
 
-    Best case scenario with no errors or locks.
-    """
+    # Best case scenario with no errors or locks.
+    #"""
     device = get_device("Living Room")
     mock_api = device.get_mock_api()
 
