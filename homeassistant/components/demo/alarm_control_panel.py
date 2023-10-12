@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime
 
 from homeassistant.components.manual.alarm_control_panel import ManualAlarm
-from homeassistant.config_entries import ConfigEntry
+
 from homeassistant.const import (
     CONF_ARMING_TIME,
     CONF_DELAY_TIME,
@@ -19,14 +19,11 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 
 async def async_setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
     async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the Demo alarm control panel platform."""
     async_add_entities(
@@ -79,7 +76,6 @@ async def async_setup_platform(
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Demo config entry."""

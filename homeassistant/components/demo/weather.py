@@ -57,7 +57,6 @@ WEATHER_UPDATE_INTERVAL = timedelta(minutes=30)
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Demo config entry."""

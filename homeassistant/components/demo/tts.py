@@ -25,9 +25,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 
 
 def get_engine(
-    hass: HomeAssistant,
     config: ConfigType,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> Provider:
     """Set up Demo speech component."""
     return DemoProvider(config.get(CONF_LANG, DEFAULT_LANG))

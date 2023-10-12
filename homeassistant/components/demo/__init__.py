@@ -177,7 +177,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     async def demo_start_listener(_event: Event) -> None:
         """Finish set up."""
-        await finish_setup(hass, config)
+        await finish_setup(hass)
 
     hass.bus.async_listen(EVENT_HOMEASSISTANT_START, demo_start_listener)
 
@@ -201,7 +201,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     return True
 
 
-async def finish_setup(hass: HomeAssistant, config: ConfigType) -> None:
+async def finish_setup(hass: HomeAssistant) -> None:
     """Finish set up once demo platforms are set up."""
     switches: list[str] | None = None
     lights: list[str] | None = None

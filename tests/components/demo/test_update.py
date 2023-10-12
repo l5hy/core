@@ -38,7 +38,7 @@ async def update_only() -> None:
 
 
 @pytest.fixture(autouse=True)
-async def setup_demo_update(hass: HomeAssistant, update_only) -> None:
+async def setup_demo_update(hass: HomeAssistant) -> None:
     """Initialize setup demo update entity."""
     assert await async_setup_component(hass, DOMAIN, {"update": {"platform": "demo"}})
     await hass.async_block_till_done()

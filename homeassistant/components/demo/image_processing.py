@@ -5,16 +5,14 @@ from homeassistant.components.image_processing import (
     FaceInformation,
     ImageProcessingFaceEntity,
 )
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 
 def setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
     add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the demo image processing platform."""
     add_entities(

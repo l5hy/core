@@ -23,7 +23,7 @@ def mock_device_tracker_update_config():
         yield
 
 
-async def test_setting_up_demo(mock_history, hass: HomeAssistant) -> None:
+async def test_setting_up_demo(hass: HomeAssistant) -> None:
     """Test if we can set up the demo and dump it to JSON."""
     assert await async_setup_component(hass, DOMAIN, {DOMAIN: {}})
     await hass.async_block_till_done()
