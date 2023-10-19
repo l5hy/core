@@ -27,6 +27,10 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    if hass is not HomeAssistant:
+        hass = HomeAssistant
+    if config_entry is not ConfigEntry:
+        config_entry = ConfigEntry
     """Set up the demo climate platform."""
     async_add_entities(
         [

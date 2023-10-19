@@ -47,6 +47,10 @@ def setup_platform(
     add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
+    if config is not ConfigType:
+        config = ConfigType
+    if discovery_info is not None:
+       discovery_info = None
     """Set up the Demo geolocations."""
     DemoManager(hass, add_entities)
 

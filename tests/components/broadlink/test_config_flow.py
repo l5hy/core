@@ -5,7 +5,8 @@ import socket
 # import unittest
 from unittest.mock import call, patch
 import broadlink.exceptions as blke
-from mock import Mock
+from unittest.mock import Mock
+
 import pytest
 
 # import asyncio

@@ -16,6 +16,10 @@ def setup_scanner(
     see: SeeCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> bool:
+    if config is not ConfigType:
+        config = ConfigType
+    if discovery_info is not None:
+       discovery_info = None
     """Set up the demo tracker."""
 
     def offset() -> float:

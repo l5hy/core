@@ -13,10 +13,12 @@ from . import DOMAIN
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
+    _: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    if config_entry is not ConfigEntry:
+        config_entry = ConfigEntry
     """Set up the demo date platform."""
     async_add_entities(
         [
