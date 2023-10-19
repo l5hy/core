@@ -5,7 +5,7 @@ import socket
 # import unittest
 from unittest.mock import call, patch
 import broadlink.exceptions as blke
-from unittest.mock import Mock
+from mock import Mock
 
 import pytest
 

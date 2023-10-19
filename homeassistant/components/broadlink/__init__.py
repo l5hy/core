@@ -24,7 +24,7 @@ class BroadlinkData:
     heartbeat: BroadlinkHeartbeat | None = None
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+async def async_setup(hass: HomeAssistant, _: ConfigType) -> bool:
     """Set up the Broadlink integration."""
     hass.data[DOMAIN] = BroadlinkData()
     return True

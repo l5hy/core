@@ -38,9 +38,11 @@ from .const import DOMAIN
 from .entity import BroadlinkEntity
 from .helpers import data_packet, import_device, mac_address
 
+FAILED_PACKET="Failed to send packet: %s"
 _LOGGER = logging.getLogger(__name__)
 
 CONF_SLOTS = "slots"
+
 
 SWITCH_SCHEMA = vol.Schema(
     {
@@ -71,9 +73,11 @@ PLATFORM_SCHEMA = vol.All(
 async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
+    _: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
+    if discovery_info is not None:
+        discovery_info = None
     """Import the device and set up custom switches.
 
     This is for backward compatibility.
@@ -189,7 +193,7 @@ class BroadlinkRMSwitch(BroadlinkSwitch):
         try:
             await device.async_request(device.api.send_data, packet)
         except (BroadlinkException, OSError) as err:
-            _LOGGER.error("Failed to send packet: %s", err)
+            _LOGGER.error(FAILED_PACKET, err)
             return False
         return True
 
@@ -211,7 +215,7 @@ class BroadlinkSP1Switch(BroadlinkSwitch):
         try:
             await device.async_request(device.api.set_power, packet)
         except (BroadlinkException, OSError) as err:
-            _LOGGER.error("Failed to send packet: %s", err)
+            _LOGGER.error(FAILED_PACKET, err)
             return False
         return True
 
@@ -258,7 +262,7 @@ class BroadlinkMP1Slot(BroadlinkSwitch):
         try:
             await device.async_request(device.api.set_power, self._slot, packet)
         except (BroadlinkException, OSError) as err:
-            _LOGGER.error("Failed to send packet: %s", err)
+            _LOGGER.error(FAILED_PACKET, err)
             return False
         return True
 
@@ -291,6 +295,6 @@ class BroadlinkBG1Slot(BroadlinkSwitch):
         try:
             await device.async_request(device.api.set_state, **state)
         except (BroadlinkException, OSError) as err:
-            _LOGGER.error("Failed to send packet: %s", err)
+            _LOGGER.error(FAILED_PACKET, err)
             return False
         return True
