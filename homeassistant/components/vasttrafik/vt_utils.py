@@ -35,7 +35,7 @@ class JourneyPlanner:
         self._token_expire_date = (
             datetime.now() +
             timedelta(minutes=self._expiry))
-        
+
     def _request(self, service, **parameters):
         """ request builder """
         urlformat = "{baseurl}/{service}?{parameters}&format=json"
@@ -54,44 +54,48 @@ class JourneyPlanner:
         else:
             print('Error: ' + str(res.status_code) +
                             str(res.content))
-        
+
     def api_call(self, request_url):
         response = self._request(request_url)
         return response
-    
+
+    # journeys?originGid=9021014001760000&destinationGid=9022014001760004&limit=10&onlyDirectConnections=false&includeNearbyStopAreas=false&includeOccupancy=false
+    def get_journeys(self, origin, dest):
+        return self.api_call('journeys?originGid='+str(origin)+'&destinationGid='+str(dest)+'&')
+
     # LOCATION
     def get_locations(self, name):
         return self.api_call('locations/by-text?q='+name)['results']
-        
+
     def get_locations_lat_long(self, latitude, longitude):
         return self.api_call(f'locations/by-coordinates?latitude={latitude}&longitude={longitude}&radiusInMeters=500&limit=10&offset=0')['results']
-        
+
     # STOP AREAS
     def get_departures_stop_area(self, gid):
         return self.api_call(f'stop-areas/{gid}/departures')['results']
-    
+
     def get_arrivals_stop_area(self, gid):
         return self.api_call(f'stop-areas/{gid}/arrivals')['results']
 
     def get_departure_details_sa(self, gid, detailsReference):
         return self.api_call(f'stop-areas/{gid}/departures/{detailsReference}/details')['serviceJourneys']
-    
+
     def get_arrival_details_sa(self, gid, detailsReference):
         return self.api_call(f'stop-areas/{gid}/arrivals/{detailsReference}/details')['serviceJourneys']
 
     # STOP POINTS
     def get_departures_stop_points(self, gid):
         return self.api_call(f'stop-points/{gid}/departures')['results']
-    
+
     def get_arrivals_stop_points(self, gid):
         return self.api_call(f'stop-points/{gid}/arrivals')['results']
 
     def get_departure_details_sp(self, gid, detailsReference):
         return self.api_call(f'stop-points/{gid}/departures/{detailsReference}/details')['serviceJourneys']
-    
+
     def get_arrival_details_sp(self, gid, detailsReference):
         return self.api_call(f'stop-points/{gid}/departures/{detailsReference}/details')['serviceJourneys']
-    
+
 
 jp = JourneyPlanner(
     key=CLIENT_ID,
@@ -109,3 +113,4 @@ print(f'Get Departure Details SA: {jp.get_departure_details_sa(gid, detailsRefer
 print(f'Get Arrival details SA: {jp.get_arrival_details_sa(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sa(gid, detailsReference)[0]["line"]["name"]}')
 print(f'Get Departure details SP: {jp.get_departure_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_departure_details_sp(gid, detailsReference)[0]["line"]["name"]}')
 print(f'Get Arrival details SP: {jp.get_arrival_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sp(gid, detailsReference)[0]["line"]["name"]}')
+print(f'Journeys: {jp.get_journeys(9021014001760000,9022014001760004)["results"]}')

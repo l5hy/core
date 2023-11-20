@@ -5,6 +5,7 @@ from datetime import timedelta
 import logging
 
 import vasttrafik
+import vt_utils as vt
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
@@ -27,8 +28,8 @@ CONF_DEPARTURES = "departures"
 CONF_FROM = "from"
 CONF_HEADING = "heading"
 CONF_LINES = "lines"
-CONF_KEY = "key"
-CONF_SECRET = "secret"
+CONF_KEY = vt.CLIENT_ID
+CONF_SECRET = vt.SECRET
 
 DEFAULT_DELAY = 0
 
@@ -37,8 +38,6 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=120)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Required(CONF_KEY): cv.string,
-        vol.Required(CONF_SECRET): cv.string,
         vol.Required(CONF_DEPARTURES): [
             {
                 vol.Required(CONF_FROM): cv.string,
