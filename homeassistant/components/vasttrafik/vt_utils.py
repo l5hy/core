@@ -29,7 +29,6 @@ class JourneyPlanner:
         data = {'grant_type': 'client_credentials'}
 
         response = requests.post(TOKEN_URL, data=data, headers=headers)
-        print(response)
         obj = json.loads(response.content.decode('UTF-8'))
         self._token = obj['access_token']
         self._token_expire_date = (
@@ -59,7 +58,7 @@ class JourneyPlanner:
         response = self._request(request_url)
         return response
 
-    # journeys?originGid=9021014001760000&destinationGid=9022014001760004&limit=10&onlyDirectConnections=false&includeNearbyStopAreas=false&includeOccupancy=false
+    # Journeys
     def get_journeys(self, origin, dest):
         return self.api_call('journeys?originGid='+str(origin)+'&destinationGid='+str(dest)+'&')
 
@@ -102,15 +101,18 @@ jp = JourneyPlanner(
     secret=SECRET)
 
 # TESTING
-brunnsparken = jp.get_locations('Brunnsparken')
-gid = brunnsparken[0]['gid']
-print(f'Location: {brunnsparken[0]["name"]}')
-print(f'GID: {gid}')
-detailsReference = jp.get_departures_stop_area(gid)[0]['detailsReference']
+def test():
+    brunnsparken = jp.get_locations('Brunnsparken')
+    gid = brunnsparken[0]['gid']
+    print(f'Location: {brunnsparken[0]["name"]}')
+    print(f'GID: {gid}')
+    detailsReference = jp.get_departures_stop_area(gid)[0]['detailsReference']
 
-print(f'DetailsReference: {detailsReference}')
-print(f'Get Departure Details SA: {jp.get_departure_details_sa(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_departure_details_sa(gid, detailsReference)[0]["line"]["name"]}')
-print(f'Get Arrival details SA: {jp.get_arrival_details_sa(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sa(gid, detailsReference)[0]["line"]["name"]}')
-print(f'Get Departure details SP: {jp.get_departure_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_departure_details_sp(gid, detailsReference)[0]["line"]["name"]}')
-print(f'Get Arrival details SP: {jp.get_arrival_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sp(gid, detailsReference)[0]["line"]["name"]}')
-print(f'Journeys: {jp.get_journeys(9021014001760000,9022014001760004)["results"]}')
+    print(f'DetailsReference: {detailsReference}')
+    print(f'Get Departure Details SA: {jp.get_departure_details_sa(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_departure_details_sa(gid, detailsReference)[0]["line"]["name"]}')
+    print(f'Get Arrival details SA: {jp.get_arrival_details_sa(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sa(gid, detailsReference)[0]["line"]["name"]}')
+    print(f'Get Departure details SP: {jp.get_departure_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_departure_details_sp(gid, detailsReference)[0]["line"]["name"]}')
+    print(f'Get Arrival details SP: {jp.get_arrival_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sp(gid, detailsReference)[0]["line"]["name"]}')
+    print(f'Journeys: {jp.get_journeys(9021014001760000,9022014001760004)["results"]}')
+
+# test()

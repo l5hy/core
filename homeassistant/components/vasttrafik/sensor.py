@@ -60,9 +60,9 @@ def setup_platform(
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the departure sensor."""
-    planner = vasttrafik.JournyPlanner(config.get(CONF_KEY), config.get(CONF_SECRET))
+    planner = vt.JourneyPlanner(CONF_KEY, CONF_SECRET)
     sensors = []
-
+    _LOGGER.debug("Setting up.")
     for departure in config[CONF_DEPARTURES]:
         sensors.append(
             VasttrafikDepartureSensor(
@@ -97,10 +97,11 @@ class VasttrafikDepartureSensor(SensorEntity):
 
     def get_station_id(self, location):
         """Get the station ID."""
+        _LOGGER.debug("Location: "+location)
         if location.isdecimal():
             station_info = {"station_name": location, "station_id": location}
         else:
-            station_id = self._planner.location_name(location)[0]["id"]
+            station_id = self._planner.get_locations(location)[0]["id"]
             station_info = {"station_name": location, "station_id": station_id}
         return station_info
 
@@ -123,10 +124,8 @@ class VasttrafikDepartureSensor(SensorEntity):
     def update(self) -> None:
         """Get the departure board."""
         try:
-            self._departureboard = self._planner.departureboard(
-                self._departure["station_id"],
-                direction=self._heading["station_id"] if self._heading else None,
-                date=now() + self._delay,
+            self._departureboard = self._planner.get_departures_stop_area(
+                self._departure["station_id"]
             )
         except vasttrafik.Error:
             _LOGGER.debug("Unable to read departure board, updating token")
