@@ -1,0 +1,27 @@
+2023-11-21 12:50:43.127 WARNING (Recorder) [homeassistant.components.recorder.util] The system could not validate that the sqlite3 database at //Users/sundarakrishnang/Desktop/Desktop - Sundarakrishnan's Mac/Projects/Uni/core/config/home-assistant_v2.db was shutdown cleanly
+2023-11-21 12:50:43.143 WARNING (Recorder) [homeassistant.components.recorder.util] Ended unfinished session (id=24 from 2023-11-21 11:49:24.652469)
+2023-11-21 12:50:44.973 WARNING (SyncWorker_5) [scapy.runtime] No IPv4 address found on anpi1 !
+2023-11-21 12:50:45.014 WARNING (SyncWorker_5) [scapy.runtime] No IPv4 address found on anpi0 !
+2023-11-21 12:50:45.047 WARNING (SyncWorker_5) [scapy.runtime] more No IPv4 address found on en3 !
+2023-11-21 12:51:22.929 ERROR (MainThread) [root] Uncaught exception
+Traceback (most recent call last):
+  File "/opt/homebrew/bin/hass", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/homeassistant/__main__.py", line 209, in main
+    exit_code = runner.run(runtime_conf)
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.11/site-packages/homeassistant/runner.py", line 188, in run
+    return loop.run_until_complete(setup_and_run_hass(runtime_config))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.5/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/base_events.py", line 640, in run_until_complete
+    self.run_forever()
+  File "/opt/homebrew/Cellar/python@3.11/3.11.5/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/base_events.py", line 607, in run_forever
+    self._run_once()
+  File "/opt/homebrew/Cellar/python@3.11/3.11.5/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/base_events.py", line 1884, in _run_once
+    event_list = self._selector.select(timeout)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.11/3.11.5/Frameworks/Python.framework/Versions/3.11/lib/python3.11/selectors.py", line 561, in select
+    kev_list = self._selector.control(None, max_ev, timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

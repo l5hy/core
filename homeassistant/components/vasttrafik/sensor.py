@@ -4,7 +4,6 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-import vasttrafik
 import vt_utils as vt
 import voluptuous as vol
 
@@ -32,7 +31,6 @@ CONF_KEY = vt.CLIENT_ID
 CONF_SECRET = vt.SECRET
 
 DEFAULT_DELAY = 0
-
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=120)
 
@@ -123,13 +121,13 @@ class VasttrafikDepartureSensor(SensorEntity):
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self) -> None:
         """Get the departure board."""
-        try:
-            self._departureboard = self._planner.get_departures_stop_area(
+        # try:
+        self._departureboard = self._planner.get_departures_stop_area(
                 self._departure["station_id"]
             )
-        except vasttrafik.Error:
-            _LOGGER.debug("Unable to read departure board, updating token")
-            self._planner.update_token()
+        # except vasttrafik.Error:
+        #     _LOGGER.debug("Unable to read departure board, updating token")
+        #     self._planner.update_token()
 
         if not self._departureboard:
             _LOGGER.debug(
