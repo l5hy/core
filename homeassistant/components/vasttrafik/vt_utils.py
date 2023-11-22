@@ -123,7 +123,18 @@ def test():
     print(possible_trips(gid, gid2))
     print (reduce_trips(possible_trips(gid, gid2)))
 
-
+def test_simple_travel_plan():
+    brunnsparken = jp.get_locations('Lindholmen')
+    gid = brunnsparken[0]['gid']
+    chalmers = jp.get_locations('Chalmers')
+    gid2 = chalmers[0]['gid']
+    print()
+    print("______________________________________________________________")
+    print("Simple Travel Plan: ")
+    print()
+    simple_travel_plan(gid2, gid)
+    print()
+    print("______________________________________________________________")
 
 
 def possible_trips(start, stop):
@@ -153,9 +164,36 @@ def reduce_trips (trips):
             return_trips.append(string)
     return return_trips
 
+"""
+start tid?
+vilken buss? (namn och linje)
+var ifrån?
+till?
+framme tid?
+"""
+def simple_travel_plan(start, stop):
+    dict = jp.get_journeys(start, stop)["results"]
+    trips = []
+    for x in range (0, len(dict)):
+        trips.append(dict[x]["tripLegs"])
+        """
+        lastElement = "" + trips[(len(trips))-1]["serviceJourneys"]["callsOnServiceJourney"]['isCancelled']
+        if lastElement == "True":
+            trips.pop((len(trips))-1)
+        """
+    bestTrip = trips[0][0]
+    #print(bestTrip)
+    print("Estimated Departure: " + bestTrip["origin"]["estimatedTime"])
+    print("Line: " + bestTrip["serviceJourney"]["line"]["name"])
+    print("From: " + bestTrip["origin"]["stopPoint"]["name"] + " platform " + bestTrip["origin"]["stopPoint"]["platform"])
+    print("To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"])
+    print("Estimated Arrival: " + bestTrip["destination"]["estimatedTime"])
+
+    return
 
 
 
 test()
+test_simple_travel_plan()
 
 
