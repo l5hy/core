@@ -113,6 +113,49 @@ def test():
     print(f'Get Arrival details SA: {jp.get_arrival_details_sa(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sa(gid, detailsReference)[0]["line"]["name"]}')
     print(f'Get Departure details SP: {jp.get_departure_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_departure_details_sp(gid, detailsReference)[0]["line"]["name"]}')
     print(f'Get Arrival details SP: {jp.get_arrival_details_sp(gid, detailsReference)[0]["direction"]} & Transport number {jp.get_arrival_details_sp(gid, detailsReference)[0]["line"]["name"]}')
-    print(f'Journeys: {jp.get_journeys(9021014001760000,9022014001760004)["results"]}')
+    #print(f'Journeys: {jp.get_journeys(9021014001760000,9022014001760004)["results"]}')
 
-# test()
+    chalmers = jp.get_locations('Chalmers')
+    gid2 = chalmers[0]['gid']
+    print(f'Location: {chalmers[0]["name"]}')
+    print(f'GID: {gid}')
+    print(gid2)
+    print(possible_trips(gid, gid2))
+    print (reduce_trips(possible_trips(gid, gid2)))
+
+
+
+
+def possible_trips(start, stop):
+    dict = jp.get_journeys(start, stop)["results"]
+    trips = []
+    for x in range (0, len(dict)):
+        trips.append(dict[x]["tripLegs"])
+    return trips
+
+def reduce_trips (trips):
+    return_trips = []
+    for x in range(len(trips)):
+        string = ""
+        print(len(trips[x]))
+        if len(trips[x]) > 1:
+            z=0
+            for y in range(0, len(trips[x])-1):
+                if y == 0:
+                    string = "Board " + trips[x][y]["serviceJourney"]["line"]["name"] + " at stop " + trips[x][y]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][y]["origin"]["stopPoint"]["platform"] + ". " + "Transfer at " + trips[x][y]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][y]["destination"]["stopPoint"]["platform"] + " to " + trips[x][y+1]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][y+1]["origin"]["stopPoint"]["platform"] + " and board " + trips[x][y+1]["serviceJourney"]["line"]["name"] +  ". "
+                if y > 0:
+                    string = string + "Then transfer at " + trips[x][y]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][y]["destination"]["stopPoint"]["platform"] + " to " + trips[x][y+1]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][y+1]["origin"]["stopPoint"]["platform"] + " and board " + trips[x][y+1]["serviceJourney"]["line"]["name"] +  ". "
+                z = 0 + y
+            string = string + "Finally exit vehicle at " + trips[x][z]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][z]["destination"]["stopPoint"]["platform"] + ". "
+            return_trips.append(string)
+        else:
+            string = "Board " + trips[x][0]["serviceJourney"]["line"]["name"] + " at stop " + trips[x][0]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][0]["origin"]["stopPoint"]["platform"] + ". " + "Exit vehicle at " + trips[x][0]["destination"]["stopPoint"]["name"] + " platform " + trips[x][0]["destination"]["stopPoint"]["platform"] + ". "
+            return_trips.append(string)
+    return return_trips
+
+
+
+
+test()
+
+
