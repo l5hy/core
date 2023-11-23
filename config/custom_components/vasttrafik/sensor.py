@@ -85,11 +85,11 @@ class VasttrafikDepartureSensor(SensorEntity):
         self._name = name or departure
         self._departure = self.get_station_id(departure)
         self._heading = self.get_station_id(heading) if heading else None
-        jpi = JPImpl()
+        self.jpi = JPImpl()
         self._attr_description = "-"
         if heading:
-            trips = jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
-            self._attr_description = jpi.reduce_trips(trips)
+            trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
+            self._attr_description = self.jpi.advanced_travel_plan(trips)
         self._lines = lines if lines else None
         self._delay = timedelta(minutes=delay)
         self._departureboard = None
@@ -148,9 +148,13 @@ class VasttrafikDepartureSensor(SensorEntity):
                     continue
                 if not self._lines or line in self._lines:
                     estTime = datetime.fromisoformat(departure["estimatedTime"])
-                    formatted_timestamp = estTime.strftime('%H:%M:%S')
+                    formatted_timestamp = estTime.strftime('%H:%M')
                     self._state = formatted_timestamp
                     heading = self._heading.get('station_name') if self._heading else "-"
+                    self._attr_description = "-"
+                    if self._heading:
+                        trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
+                        self._attr_description = self.jpi.advanced_travel_plan(trips)
                     params = {
                         ATTR_ACCESSIBILITY: departure["serviceJourney"]["line"].get("isWheelchairAccessible"),
                         ATTR_DIRECTION: departure["serviceJourney"].get("direction"),

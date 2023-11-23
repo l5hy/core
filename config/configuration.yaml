@@ -18,6 +18,7 @@ sensor:
       - from: Musikvägen
         heading: Heden
       - from: Brunnsparken
+        heading: Chalmers
       - from: Saltholmen
 
 

@@ -138,6 +138,18 @@ class JPImpl:
         print("Estimated Arrival: " + bestTrip["destination"]["estimatedTime"])
         return
 
+    def advanced_travel_plan(self, trips):
+        return_trips = []
+        string = ""
+        bestTrip = trips[0][0]
+        string = ("Estimated Departure: " + datetime.fromisoformat(bestTrip["origin"]["estimatedTime"]).strftime('%H:%M')
+                  + "Line: " + bestTrip["serviceJourney"]["line"].get("shortName")
+                  + "From: " + bestTrip["origin"]["stopPoint"]["name"] + " platform " + bestTrip["origin"]["stopPoint"]["platform"]
+                  + "To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"]
+                  + "Estimated Arrival: " + datetime.fromisoformat(bestTrip["destination"]["estimatedTime"]).strftime('%H:%M'))
+        return_trips.append(string)
+        return return_trips
+
 
 """
 start tid?
