@@ -79,8 +79,6 @@ jp = JourneyPlanner(
 
 #getting nearby vasttrafik stops from the location
 def nearstop_vastra():
-
-
     g = geocoder.ip('me')
     stops = jp.get_locations_lat_long(g.latlng[0], g.latlng[1])
     nearest_stops = {stop["name"]: stop["straightLineDistanceInMeters"] for stop in stops}

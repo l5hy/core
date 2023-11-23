@@ -15,17 +15,13 @@ scene: !include scenes.yaml
 sensor:
   - platform: vasttrafik
     departures:
-      - from: Musikvägen
-        heading: Heden
       - from: Brunnsparken
         heading: Chalmers
-      - from: Saltholmen
 
-
-views:
-  - title: My Map View
-    icon: mdi:map
-    cards:
-      - type: map
-        entities:
-          - sensor.vasttrafik
+# views:
+#   - title: My Map View
+#     icon: mdi:map
+#     cards:
+#       - type: map
+#         entities:
+#           - sensor.vasttrafik

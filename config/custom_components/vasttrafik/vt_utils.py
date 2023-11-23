@@ -3,6 +3,7 @@ from datetime import datetime
 
 import requests
 import json
+import geocoder
 
 AUTH_KEY = 'N1BtdXBSbW1qNlF0WjFRamVTVk1hVFBlVHd3YTowNTlDYUVBeW9qdnJ6RWhEcXdxVDAwQmNLbzhh'
 TOKEN_URL = 'https://ext-api.vasttrafik.se/token'
@@ -92,6 +93,7 @@ class JourneyPlanner:
 class JPImpl:
     def __init__(self):
         self.jp = JourneyPlanner()
+        self.nearby_stops()
 
     def possible_trips(self, start, stop):
         dict = self.jp.get_journeys(start, stop)["results"]
@@ -149,6 +151,16 @@ class JPImpl:
                   + "Estimated Arrival: " + datetime.fromisoformat(bestTrip["destination"]["estimatedTime"]).strftime('%H:%M'))
         return_trips.append(string)
         return return_trips
+
+    def nearby_stops(self):
+        g = geocoder.ip('me')
+        stops = self.jp.get_locations_lat_long(g.latlng[0], g.latlng[1])
+        nearest_stops = {stop["name"]: stop["straightLineDistanceInMeters"] for stop in stops}
+        list_stops = list((nearest_stops.items()))
+        list_stops.sort(key=lambda x: x[1])
+        print("Nearest Stops are :")
+        for stop in list_stops:
+            print(f'{"".join(stop[:-1])}  -  {stop[-1]} meters')
 
 
 """
