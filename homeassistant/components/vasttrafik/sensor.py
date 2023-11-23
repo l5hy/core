@@ -4,8 +4,8 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-import vt_utils as vt
 import voluptuous as vol
+import vt_utils as vt
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import CONF_DELAY, CONF_NAME
@@ -23,12 +23,14 @@ ATTR_DIRECTION = "direction"
 ATTR_LINE = "line"
 ATTR_TRACK = "track"
 
+
 CONF_DEPARTURES = "departures"
 CONF_FROM = "from"
 CONF_HEADING = "heading"
 CONF_LINES = "lines"
 CONF_KEY = vt.CLIENT_ID
 CONF_SECRET = vt.SECRET
+
 
 DEFAULT_DELAY = 0
 
@@ -46,7 +48,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
                 ),
                 vol.Optional(CONF_NAME): cv.string,
             }
-        ],
+        ]
     }
 )
 

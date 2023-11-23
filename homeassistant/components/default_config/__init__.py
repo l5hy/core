@@ -7,8 +7,7 @@ from homeassistant.setup import async_setup_component
 
 DOMAIN = "default_config"
 
-CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
-
+CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)å
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Initialize default configuration."""
