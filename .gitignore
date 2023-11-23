@@ -1,8 +1,9 @@
-/config
-config2/*
+config/* 
 
-!config/configuration.yaml
-!config/custom_components/*
+!configuration.yaml
+!custom_components/*
+
+
 
 tests/testing_config/deps
 tests/testing_config/home-assistant.log*
