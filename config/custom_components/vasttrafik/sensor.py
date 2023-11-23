@@ -30,15 +30,15 @@ CONF_FROM = "from"
 CONF_HEADING = "heading"
 CONF_LINES = "lines"
 
-DEFAULT_DELAY = 0
+DEFAULT_DELAY = 2
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Required(CONF_DEPARTURES): [
+        vol.Optional(CONF_DEPARTURES): [
             {
-                vol.Required(CONF_FROM): cv.string,
+                vol.Optional(CONF_FROM): cv.string,
                 vol.Optional(CONF_DELAY, default=DEFAULT_DELAY): cv.positive_int,
                 vol.Optional(CONF_HEADING): cv.string,
                 vol.Optional(CONF_LINES, default=[]): vol.All(
@@ -58,18 +58,30 @@ def setup_platform(
 ) -> None:
     """Set up the departure sensor."""
     planner = JourneyPlanner()
+    jpi = JPImpl()
+    nearby = jpi.nearby_stops()
     sensors = []
-    for departure in config[CONF_DEPARTURES]:
-        sensors.append(
-            VasttrafikDepartureSensor(
-                planner,
-                departure.get(CONF_NAME),
-                departure.get(CONF_FROM),
-                departure.get(CONF_HEADING),
-                departure.get(CONF_LINES),
-                departure.get(CONF_DELAY),
+    if config.get(CONF_DEPARTURES):
+        for departure in config[CONF_DEPARTURES]:
+            sensors.append(
+                VasttrafikDepartureSensor(
+                    planner,
+                    departure.get(CONF_NAME),
+                    departure.get(CONF_FROM),
+                    departure.get(CONF_HEADING),
+                    departure.get(CONF_DELAY),
+                    departure.get(CONF_LINES),
+                )
             )
-        )
+    for n in nearby:
+        sensors.append(VasttrafikDepartureSensor(
+            planner,
+            n[0] + " (Nearby)",
+            n[0],
+            None,
+            DEFAULT_DELAY,
+            None,
+        ))
     add_entities(sensors, True)
 
 
@@ -79,10 +91,10 @@ class VasttrafikDepartureSensor(SensorEntity):
     _attr_attribution = "Data provided by Västtrafik"
     _attr_icon = "mdi:train"
 
-    def __init__(self, planner, name, departure, heading, lines, delay):
+    def __init__(self, planner, name, departure, heading, delay, lines=None):
         """Initialize the sensor."""
         self._planner = planner
-        self._name = name or departure
+        self._name = name if name else departure
         self._departure = self.get_station_id(departure)
         self._heading = self.get_station_id(heading) if heading else None
         self.jpi = JPImpl()
@@ -90,7 +102,7 @@ class VasttrafikDepartureSensor(SensorEntity):
         if heading:
             trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
             self._attr_description = self.jpi.advanced_travel_plan(trips)
-        self._lines = lines if lines else None
+        self._lines = lines
         self._delay = timedelta(minutes=delay)
         self._departureboard = None
         self._state = None
@@ -138,18 +150,18 @@ class VasttrafikDepartureSensor(SensorEntity):
                 self._departure["station_name"],
                 self._heading["station_name"] if self._heading else "ANY",
             )
-            self._state = None
+            self._state = "Estimated time not found"
             self._attributes = {}
         else:
-
             for departure in self._departureboard:
                 line = departure["serviceJourney"]["line"].get("shortName")
                 if departure.get("isCancelled"):
                     continue
                 if not self._lines or line in self._lines:
-                    estTime = datetime.fromisoformat(departure["estimatedTime"])
-                    formatted_timestamp = estTime.strftime('%H:%M')
-                    self._state = formatted_timestamp
+                    if departure.get("estimatedTime"):
+                        estTime = datetime.fromisoformat(departure.get("estimatedTime"))
+                        formatted_timestamp = estTime.strftime('%H:%M')
+                        self._state = formatted_timestamp
                     heading = self._heading.get('station_name') if self._heading else "-"
                     direction = departure["serviceJourney"].get("direction")
                     line = departure["serviceJourney"]["line"].get("transportMode").capitalize() +" "+departure["serviceJourney"]["line"].get("shortName")
@@ -164,7 +176,7 @@ class VasttrafikDepartureSensor(SensorEntity):
                         trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
                         self._attr_description = self.jpi.advanced_travel_plan(trips)
                     params = {
-                        ATTR_ACCESSIBILITY: accessibility,
+                        ATTR_ACCESSIBILITY: "Wheel chair accessible" if accessibility else "Not wheel chair accessible",
                         ATTR_DIRECTION: direction,
                         ATTR_HEADING: heading,
                         ATTR_LINE: line,

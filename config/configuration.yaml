@@ -17,6 +17,8 @@ sensor:
     departures:
       - from: Brunnsparken
         heading: Chalmers
+      - from: Angered
+
 
 # views:
 #   - title: My Map View

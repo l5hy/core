@@ -61,7 +61,7 @@ class JourneyPlanner:
         return self.api_call('locations/by-text?q='+name)['results']
 
     def get_locations_lat_long(self, latitude, longitude):
-        return self.api_call(f'locations/by-coordinates?latitude={latitude}&longitude={longitude}&radiusInMeters=500&limit=10&offset=0')['results']
+        return self.api_call(f'locations/by-coordinates?latitude={str(latitude)}&longitude={str(longitude)}&types=stoparea&')['results']
 
     # STOP AREAS
     def get_departures_stop_area(self, gid):
@@ -93,7 +93,6 @@ class JourneyPlanner:
 class JPImpl:
     def __init__(self):
         self.jp = JourneyPlanner()
-        self.nearby_stops()
 
     def possible_trips(self, start, stop):
         dict = self.jp.get_journeys(start, stop)["results"]
@@ -144,30 +143,21 @@ class JPImpl:
         return_trips = []
         string = ""
         bestTrip = trips[0][0]
+        print(bestTrip)
         string = ("Estimated Departure: " + datetime.fromisoformat(bestTrip["origin"]["estimatedTime"]).strftime('%H:%M')
-                  + "Line: " + bestTrip["serviceJourney"]["line"].get("shortName")
-                  + "From: " + bestTrip["origin"]["stopPoint"]["name"] + " platform " + bestTrip["origin"]["stopPoint"]["platform"]
-                  + "To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"]
-                  + "Estimated Arrival: " + datetime.fromisoformat(bestTrip["destination"]["estimatedTime"]).strftime('%H:%M'))
+                  + ", Line: " + bestTrip["serviceJourney"]["line"].get("shortName")
+                  + ", From: " + bestTrip["origin"]["stopPoint"]["name"] + " platform " + bestTrip["origin"]["stopPoint"]["platform"]
+                  + ", To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"]
+                  + ", Estimated Arrival: " + datetime.fromisoformat(bestTrip["destination"]["estimatedTime"]).strftime('%H:%M'))
         return_trips.append(string)
         return return_trips
 
     def nearby_stops(self):
-        g = geocoder.ip('me')
-        stops = self.jp.get_locations_lat_long(g.latlng[0], g.latlng[1])
+        stops = self.jp.get_locations_lat_long(str(57.708110), str(11.938043))
         nearest_stops = {stop["name"]: stop["straightLineDistanceInMeters"] for stop in stops}
         list_stops = list((nearest_stops.items()))
         list_stops.sort(key=lambda x: x[1])
-        print("Nearest Stops are :")
-        for stop in list_stops:
-            print(f'{"".join(stop[:-1])}  -  {stop[-1]} meters')
-
-
-"""
-start tid?
-vilken buss? (namn och linje)
-var ifrån?
-till?
-framme tid?
-"""
-
+        # print("Nearest Stops are :")
+        # for stop in list_stops:
+        #     print(f'{"".join(stop[:-1])}  -  {stop[-1]} meters')
+        return list_stops
