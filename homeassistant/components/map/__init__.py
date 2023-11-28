@@ -8,7 +8,6 @@ DOMAIN = "map"
 
 CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
-
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register the built-in map panel."""
     frontend.async_register_built_in_panel(hass, "map", "map", "hass:tooltip-account")

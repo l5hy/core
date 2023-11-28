@@ -3,7 +3,6 @@ from datetime import datetime
 
 import requests
 import json
-import geocoder
 
 AUTH_KEY = 'N1BtdXBSbW1qNlF0WjFRamVTVk1hVFBlVHd3YTowNTlDYUVBeW9qdnJ6RWhEcXdxVDAwQmNLbzhh'
 TOKEN_URL = 'https://ext-api.vasttrafik.se/token'
@@ -143,8 +142,9 @@ class JPImpl:
         return_trips = []
         string = ""
         bestTrip = trips[0][0]
-        print(bestTrip)
-        string = ("Estimated Departure: " + datetime.fromisoformat(bestTrip["origin"]["estimatedTime"]).strftime('%H:%M')
+        # print(bestTrip)
+        if bestTrip["origin"].get("estimatedTime"):
+            string = ("Estimated Departure: " + datetime.fromisoformat(bestTrip["origin"]["estimatedTime"]).strftime('%H:%M')
                   + ", Line: " + bestTrip["serviceJourney"]["line"].get("shortName")
                   + ", From: " + bestTrip["origin"]["stopPoint"]["name"] + " platform " + bestTrip["origin"]["stopPoint"]["platform"]
                   + ", To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"]

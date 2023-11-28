@@ -8,6 +8,7 @@ from .vt_utils import JourneyPlanner, JPImpl
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
+from homeassistant.components.geo_location import GeolocationEvent
 from homeassistant.const import CONF_DELAY, CONF_NAME
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
@@ -17,7 +18,7 @@ from homeassistant.util import Throttle
 from homeassistant.util.dt import now
 
 _LOGGER = logging.getLogger(__name__)
-
+SOURCE = 'Vasttrafik'
 ATTR_ACCESSIBILITY = "accessibility"
 ATTR_DIRECTION = "direction"
 ATTR_HEADING = "heading"
@@ -61,8 +62,11 @@ def setup_platform(
     jpi = JPImpl()
     nearby = jpi.nearby_stops()
     sensors = []
+    geo_locations = []
     if config.get(CONF_DEPARTURES):
         for departure in config[CONF_DEPARTURES]:
+            loc = planner.get_locations(departure.get(CONF_FROM))[0]
+            geo_locations.append(VTGeolocationEvent(loc['name'], loc['latitude'],loc['longitude']))
             sensors.append(
                 VasttrafikDepartureSensor(
                     planner,
@@ -82,7 +86,44 @@ def setup_platform(
             DEFAULT_DELAY,
             None,
         ))
+    add_entities(geo_locations, True)
     add_entities(sensors, True)
+
+class VTGeolocationEvent(GeolocationEvent):
+    """Represents a geolocation event."""
+
+    _attr_should_poll = False
+    _attr_icon = "mdi:bus"
+
+    def __init__(
+        self,
+        name: str,
+        latitude: float,
+        longitude: float,
+
+    ) -> None:
+        """Initialize entity with data provided."""
+        self._attr_name = name
+        self._attr_source = "vt_entity"
+        self._latitude = latitude
+        self._longitude = longitude
+
+
+    @property
+    def source(self) -> str:
+        """Return source value of this external event."""
+        return SOURCE
+
+    @property
+    def latitude(self) -> float | None:
+        """Return latitude value of this external event."""
+        return self._latitude
+
+    @property
+    def longitude(self) -> float | None:
+        """Return longitude value of this external event."""
+        return self._longitude
+
 
 
 class VasttrafikDepartureSensor(SensorEntity):

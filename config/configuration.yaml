@@ -1,8 +1,6 @@
 
 # Loads default set of integrations. Do not remove.
 default_config:
-lovelace:
-  mode: yaml
 
 # Load frontend themes from the themes folder
 frontend:
