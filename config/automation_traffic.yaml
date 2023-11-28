@@ -1,0 +1,9 @@
+# Automation for updating the sensor states. The "automation.update_traffic_sensor_state_daily" is set "on"
+- alias: "Update Traffic Sensor State Daily"
+  trigger:
+    platform: time
+    at: "04:00:00"
+  action:
+    service: python_script.update_traffic_sensor_state
+    data:
+      formatted_traffic_data: "{{ states('sensor.formatted_traffic_data_sensor') }}"

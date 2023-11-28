@@ -62,6 +62,9 @@ class JourneyPlanner:
     def get_journeys(self, origin, dest):
         return self.api_call('journeys?originGid='+str(origin)+'&destinationGid='+str(dest)+'&')
 
+    def get_journeys_details(self, detailsReference):
+        return self.api_call(f'journeys/{detailsReference}/details')
+
     # LOCATION
     def get_locations(self, name):
         return self.api_call('locations/by-text?q='+name)['results']
