@@ -100,6 +100,7 @@ class JPImpl:
             trips.append(dict[x]["tripLegs"])
         return trips
 
+    """
     def reduce_trips(self, trips):
         return_trips = []
         for x in range(1):
@@ -124,11 +125,6 @@ class JPImpl:
         trips = []
         for x in range (0, len(dict)):
             trips.append(dict[x]["tripLegs"])
-        """
-        lastElement = "" + trips[(len(trips))-1]["serviceJourneys"]["callsOnServiceJourney"]['isCancelled']
-        if lastElement == "True":
-            trips.pop((len(trips))-1)
-        """
         bestTrip = trips[0][0]
         #print(bestTrip)
         print("Estimated Departure: " + bestTrip["origin"]["estimatedTime"])
@@ -150,6 +146,42 @@ class JPImpl:
                   + ", To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"]
                   + ", Estimated Arrival: " + datetime.fromisoformat(bestTrip["destination"]["estimatedTime"]).strftime('%H:%M'))
         return_trips.append(string)
+        return return_trips
+    """
+
+    def advanced_travel_plan2(self, trips):
+        return_trips = []
+        trip_description= ""
+        next_trip = trips[0]
+
+        if len(next_trip) > 1:
+            for x in range(0, len(trips)-1):
+                if x == 0:
+                    trip_description = (" Estimated Departure: " + datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M')
+                    + ", Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName")
+                    + ", From: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
+                elif x == len(next_trip) - 1:
+                    try:
+                        trip_description += (", Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName")
+                        + ", At : " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"]
+                        + ", End Stop: " + next_trip[x]["destination"]["stopPoint"]["name"] + " platform " + next_trip[x]["destination"]["stopPoint"]["platform"]
+                        + ", Estimated Arrival: " + datetime.fromisoformat(next_trip[x]["destination"]["estimatedTime"]).strftime('%H:%M'))
+                    except:
+                        None
+                else:
+                    try:
+                        trip_description += (", Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName")
+                        + ", At : " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
+                    except:
+                        None
+        else:
+            if next_trip[0]["origin"].get("estimatedTime"):
+                trip_description = ("Estimated Departure: " + datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M')
+                    + ", Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName")
+                    + ", From: " + next_trip[0]["origin"]["stopPoint"]["name"] + " platform " + next_trip[0]["origin"]["stopPoint"]["platform"]
+                    + ", To: " + next_trip[0]["destination"]["stopPoint"]["name"] + " platform " + next_trip[0]["destination"]["stopPoint"]["platform"]
+                    + ", Estimated Arrival: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
+        return_trips.append(trip_description)
         return return_trips
 
     def nearby_stops(self):

@@ -215,7 +215,7 @@ class VasttrafikDepartureSensor(SensorEntity):
                         accessibility = journey_details["line"].get("isWheelchairAccessible")
                         line = journey_details["line"].get("transportMode").capitalize() +" "+journey_details["line"].get("shortName")
                         trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
-                        self._attr_description = self.jpi.advanced_travel_plan(trips)
+                        self._attr_description = self.jpi.advanced_travel_plan2(trips)
                     params = {
                         ATTR_ACCESSIBILITY: "Wheel chair accessible" if accessibility else "Not wheel chair accessible",
                         ATTR_DIRECTION: direction,

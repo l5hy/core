@@ -15,8 +15,13 @@ sensor:
   - platform: vasttrafik
     departures:
       - from: Brunnsparken
+        heading: Snipen
+      - from: Jungfruplatsen
+        heading: Lindholmen
+      - from: Bifrost
         heading: Chalmers
-      - from: Angered
+      - from: Styrsö Bratten
+        heading: Bifrost
   - platform: template # defining sensor, the template for traffic situation
     sensors:
       formatted_traffic_data_sensor:
