@@ -160,7 +160,7 @@ def reduce_trips (trips):
                 if y > 0:
                     string = string + "Then transfer at " + trips[x][y]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][y]["destination"]["stopPoint"]["platform"] + " to " + trips[x][y+1]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][y+1]["origin"]["stopPoint"]["platform"] + " and board " + trips[x][y+1]["serviceJourney"]["line"]["name"] +  ". "
                 z = 0 + y
-            string = string + "Finally exit vehicle at " + trips[x][z]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][z]["destination"]["stopPoint"]["platform"] + ". "
+            string = string + "Finally exit vehicle at " + trips[x][z+1]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][z+1]["destination"]["stopPoint"]["platform"] + ". "
             return_trips.append(string)
         else:
             string = "Board " + trips[x][0]["serviceJourney"]["line"]["name"] + " at stop " + trips[x][0]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][0]["origin"]["stopPoint"]["platform"] + ". " + "Exit vehicle at " + trips[x][0]["destination"]["stopPoint"]["name"] + " platform " + trips[x][0]["destination"]["stopPoint"]["platform"] + ". "
