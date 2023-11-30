@@ -167,6 +167,164 @@ def reduce_trips (trips):
             return_trips.append(string)
     return return_trips
 
+def possible_trips_details(start, stop):
+    path_dict = jp.get_journeys(start, stop)["results"]
+    trips = []
+    for x in range(len(path_dict)):
+        trips.append(jp.get_journeys_details(path_dict[x]["detailsReference"]))
+    return trips
+
+def trip_details_reduction (details_reference):
+    trip_dict = jp.get_journeys_details(details_reference)
+    return_list = []
+    if (len (trip_dict["tripLegs"] > 1)):
+        stop_number = 0
+        for y in range(0, len(trip_dict["tripLegs"])-1):
+            new_dict = {
+                "line" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["line"]["name"],
+                "direction" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["direction"],
+                "listOfStops" : {}
+            }
+            stops_dict = {
+            }
+            for z in range(0, len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1):
+                stop_number+=1
+                reference_object_stop = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]["stopPoint"]
+                reference_object_other = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]
+                if z == 0 & y == 0:
+                    stop_dict = {
+                        "origin" : True,
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                    stops_dict[z] = stop_dict
+                elif z==0 & y != 0:
+                    stop_dict = {
+                        "transferStart" : True,
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                    stops_dict[z] = stop_dict
+                elif z == len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1 & y != len(trip_dict["tripLegs"])-1:
+                    stop_dict = {
+                        "transferStop" : True,
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "arrival" : reference_object_other["estimatedArrivalTime"],
+                        #"departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                    stops_dict[z] = stop_dict
+                elif z == len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1 & y == len(trip_dict["tripLegs"])-1:
+                    stop_dict = {
+                        "destination" : True,
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "arrival" : reference_object_other["estimatedArrivalTime"],
+                        #"departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                    stops_dict[z] = stop_dict
+                else:
+                    stop_dict = {
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "arrival" : reference_object_other["estimatedArrivalTime"],
+                        "departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                    stops_dict[z] = stop_dict
+            new_dict["listOfStops"] = stops_dict
+            return_list.append(new_dict)
+        return return_list
+
+    else:
+        new_dict = {
+            "line" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["line"]["name"],
+            "direction" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["direction"],
+            "listOfStops" : {}
+        }
+        stops_dict = {
+        }
+        for z in range(0, len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1):
+            stop_number+=1
+            reference_object_stop = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]["stopPoint"]
+            reference_object_other = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]
+            if z == 0 & y == 0:
+                stop_dict = {
+                    "origin" : True,
+                    "relativeStopNumber" : z,
+                    "stopNumber" : stop_number,
+                    "name" : reference_object_stop["name"],
+                    "platform" : reference_object_stop["platform"],
+                    "gid" : reference_object_stop["gid"],
+                    "latitude" : reference_object_stop["latitude"],
+                    "longitude" : reference_object_stop["longitude"],
+                    "departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                stops_dict[z] = stop_dict
+            elif z == len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1 & y == len(trip_dict["tripLegs"])-1:
+                stop_dict = {
+                    "destination" : True,
+                    "relativeStopNumber" : z,
+                    "stopNumber" : stop_number,
+                    "name" : reference_object_stop["name"],
+                    "platform" : reference_object_stop["platform"],
+                    "gid" : reference_object_stop["gid"],
+                    "latitude" : reference_object_stop["latitude"],
+                    "longitude" : reference_object_stop["longitude"],
+                    "arrival" : reference_object_other["estimatedArrivalTime"],
+                    #"departure" : reference_object_other["estimatedDepartureTime"]
+                }
+                stops_dict[z] = stop_dict
+            else:
+                stop_dict = {
+                    "relativeStopNumber" : z,
+                    "stopNumber" : stop_number,
+                    "name" : reference_object_stop["name"],
+                    "platform" : reference_object_stop["platform"],
+                    "gid" : reference_object_stop["gid"],
+                    "latitude" : reference_object_stop["latitude"],
+                    "longitude" : reference_object_stop["longitude"],
+                    "arrival" : reference_object_other["estimatedArrivalTime"],
+                    "departure" : reference_object_other["estimatedDepartureTime"]
+                }
+                stops_dict[z] = stop_dict
+        new_dict["listOfStops"] = stops_dict
+        return_list.append(new_dict)
+        return return_list
+
+
+
+
+
+
+
+
 """
 start tid?
 vilken buss? (namn och linje)
