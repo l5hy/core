@@ -123,8 +123,10 @@ def test():
     print(f'Location: {chalmers[0]["name"]}')
     print(f'GID: {gid}')
     print(gid2)
-    print(possible_trips(gid, gid2))
-    print (reduce_trips(possible_trips(gid, gid2)))
+    #print(possible_trips(gid, gid2))
+    #print (reduce_trips(possible_trips(gid, gid2)))
+    print(trip_details_reduction(jp.get_journeys(gid, gid2)["results"][0]["detailsReference"]))
+
 
 def test_simple_travel_plan():
     brunnsparken = jp.get_locations('Lindholmen')
@@ -177,8 +179,8 @@ def possible_trips_details(start, stop):
 def trip_details_reduction (details_reference):
     trip_dict = jp.get_journeys_details(details_reference)
     return_list = []
-    if (len (trip_dict["tripLegs"] > 1)):
-        stop_number = 0
+    stop_number = 0
+    if len(trip_dict["tripLegs"]) > 1:
         for y in range(0, len(trip_dict["tripLegs"])-1):
             new_dict = {
                 "line" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["line"]["name"],
@@ -187,10 +189,10 @@ def trip_details_reduction (details_reference):
             }
             stops_dict = {
             }
-            for z in range(0, len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1):
+            for z in range(0, len(trip_dict["tripLegs"][y]["callsOnTripLeg"])-1):
                 stop_number+=1
-                reference_object_stop = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]["stopPoint"]
-                reference_object_other = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]
+                reference_object_stop = trip_dict["tripLegs"][y]["callsOnTripLeg"][z]["stopPoint"]
+                reference_object_other = trip_dict["tripLegs"][y]["callsOnTripLeg"][z]
                 if z == 0 & y == 0:
                     stop_dict = {
                         "origin" : True,
@@ -217,7 +219,7 @@ def trip_details_reduction (details_reference):
                         "departure" : reference_object_other["estimatedDepartureTime"]
                     }
                     stops_dict[z] = stop_dict
-                elif z == len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1 & y != len(trip_dict["tripLegs"])-1:
+                elif z == len(trip_dict["tripLegs"][y]["callsOnTripLeg"])-1 & y != len(trip_dict["tripLegs"])-1:
                     stop_dict = {
                         "transferStop" : True,
                         "relativeStopNumber" : z,
@@ -231,7 +233,7 @@ def trip_details_reduction (details_reference):
                         #"departure" : reference_object_other["estimatedDepartureTime"]
                     }
                     stops_dict[z] = stop_dict
-                elif z == len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1 & y == len(trip_dict["tripLegs"])-1:
+                elif z == len(trip_dict["tripLegs"][y]["callsOnTripLeg"])-1 & y == len(trip_dict["tripLegs"])-1:
                     stop_dict = {
                         "destination" : True,
                         "relativeStopNumber" : z,
@@ -264,17 +266,17 @@ def trip_details_reduction (details_reference):
 
     else:
         new_dict = {
-            "line" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["line"]["name"],
-            "direction" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["direction"],
+            "line" : trip_dict["tripLegs"][0]["serviceJourneys"][0]["line"]["name"],
+            "direction" : trip_dict["tripLegs"][0]["serviceJourneys"][0]["direction"],
             "listOfStops" : {}
         }
         stops_dict = {
         }
-        for z in range(0, len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1):
+        for z in range(0, len(trip_dict["tripLegs"][0]["callsOnTripLeg"])-1):
             stop_number+=1
-            reference_object_stop = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]["stopPoint"]
-            reference_object_other = trip_dict["tripLegs"][y]["callsOnTripLegs"][z]
-            if z == 0 & y == 0:
+            reference_object_stop = trip_dict["tripLegs"][0]["callsOnTripLeg"][z]["stopPoint"]
+            reference_object_other = trip_dict["tripLegs"][0]["callsOnTripLeg"][z]
+            if z == 0:
                 stop_dict = {
                     "origin" : True,
                     "relativeStopNumber" : z,
@@ -287,7 +289,7 @@ def trip_details_reduction (details_reference):
                     "departure" : reference_object_other["estimatedDepartureTime"]
                     }
                 stops_dict[z] = stop_dict
-            elif z == len(trip_dict["tripLegs"][y]["callsOnTripLegs"])-1 & y == len(trip_dict["tripLegs"])-1:
+            elif z == len(trip_dict["tripLegs"][0]["callsOnTripLeg"])-1:
                 stop_dict = {
                     "destination" : True,
                     "relativeStopNumber" : z,
