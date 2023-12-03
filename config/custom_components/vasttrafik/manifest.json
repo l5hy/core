@@ -6,5 +6,5 @@
   "iot_class": "cloud_polling",
   "loggers": ["vasttrafik"],
   "requirements": [],
-  "version": 2
+  "version": 3
 }

@@ -149,7 +149,7 @@ class JPImpl:
         return return_trips
     """
 
-    def advanced_travel_plan2(self, trips):
+    def advanced_travel_plan(self, trips):
         return_trips = []
         trip_description= ""
         next_trip = trips[0]

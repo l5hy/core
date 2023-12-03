@@ -22,10 +22,10 @@ sensor:
         heading: Chalmers
       - from: Styrsö Bratten
         heading: Bifrost
-  - platform: template # defining sensor, the template for traffic situation
-    sensors:
-      formatted_traffic_data_sensor:
-        value_template: "{{ states('python_script.update_traffic_sensor_state') }}"
+  # - platform: template # defining sensor, the template for traffic situation
+  #   sensors:
+  #     formatted_traffic_data_sensor:
+  #       value_template: "{{ states('python_script.update_traffic_sensor_state') }}"
 # views:
 #   - title: My Map View
 #     icon: mdi:map
@@ -36,10 +36,10 @@ sensor:
 
 
 # creating sensor automation for traffic situation
-python_script:
-  update_traffic_sensor_state:
-    alias: Update Traffic Sensor State
-    sequence:
-      - service: python_script.update_traffic_sensor_state
-        data:
-          formatted_traffic_data_sensor: "{{ data.formatted_traffic_data_sensor }}"
+# python_script:
+#   update_traffic_sensor_state:
+#     alias: Update Traffic Sensor State
+#     sequence:
+#       - service: python_script.update_traffic_sensor_state
+#         data:
+#           formatted_traffic_data_sensor: "{{ data.formatted_traffic_data_sensor }}"

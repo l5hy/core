@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import timedelta, datetime
 import logging
 
+from homeassistant.components import persistent_notification
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from .vt_utils import JourneyPlanner, JPImpl
 import voluptuous as vol
 
@@ -37,7 +39,7 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Optional(CONF_DEPARTURES): [
+        vol.Required(CONF_DEPARTURES): [
             {
                 vol.Optional(CONF_FROM): cv.string,
                 vol.Optional(CONF_DELAY, default=DEFAULT_DELAY): cv.positive_int,
@@ -51,6 +53,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
+
 def setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
@@ -63,11 +66,10 @@ def setup_platform(
     nearby = jpi.nearby_stops()
     sensors = []
     geo_locations = []
-    if config.get(CONF_DEPARTURES):
-        for departure in config[CONF_DEPARTURES]:
-            loc = planner.get_locations(departure.get(CONF_FROM))[0]
-            geo_locations.append(VTGeolocationEvent(loc['name'], loc['latitude'],loc['longitude']))
-            sensors.append(
+    for departure in config[CONF_DEPARTURES]:
+        loc = planner.get_locations(departure.get(CONF_FROM))[0]
+        geo_locations.append(VTGeolocationEvent(loc['name'], loc['latitude'],loc['longitude']))
+        sensors.append(
                 VasttrafikDepartureSensor(
                     planner,
                     departure.get(CONF_NAME),
@@ -86,8 +88,8 @@ def setup_platform(
             DEFAULT_DELAY,
             None,
         ))
-    add_entities(geo_locations, True)
-    add_entities(sensors, True)
+    add_entities(sensors)
+    add_entities(geo_locations)
 
 class VTGeolocationEvent(GeolocationEvent):
     """Represents a geolocation event."""
@@ -123,7 +125,6 @@ class VTGeolocationEvent(GeolocationEvent):
     def longitude(self) -> float | None:
         """Return longitude value of this external event."""
         return self._longitude
-
 
 
 class VasttrafikDepartureSensor(SensorEntity):
@@ -173,6 +174,11 @@ class VasttrafikDepartureSensor(SensorEntity):
         """Return the next departure time."""
         return self._state
 
+    def notify(self):
+        persistent_notification.async_create(
+            self.hass, "Your stop is nearing", title="Get down alert"
+        )
+        self.hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self) -> None:
@@ -195,6 +201,7 @@ class VasttrafikDepartureSensor(SensorEntity):
             self._attributes = {}
         else:
             for departure in self._departureboard:
+                self.notify()
                 line = departure["serviceJourney"]["line"].get("shortName")
                 if departure.get("isCancelled"):
                     continue
@@ -207,7 +214,6 @@ class VasttrafikDepartureSensor(SensorEntity):
                     direction = departure["serviceJourney"].get("direction")
                     line = departure["serviceJourney"]["line"].get("transportMode").capitalize() +" "+departure["serviceJourney"]["line"].get("shortName")
                     accessibility = departure["serviceJourney"]["line"].get("isWheelchairAccessible")
-                    self._attr_description = "-"
                     if self._heading:
                         journeys = self._planner.get_journeys(self._departure.get('station_id'), self._heading.get('station_id'))
                         journey_details = journeys["results"][0]["tripLegs"][0]["serviceJourney"]
@@ -215,7 +221,7 @@ class VasttrafikDepartureSensor(SensorEntity):
                         accessibility = journey_details["line"].get("isWheelchairAccessible")
                         line = journey_details["line"].get("transportMode").capitalize() +" "+journey_details["line"].get("shortName")
                         trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
-                        self._attr_description = self.jpi.advanced_travel_plan2(trips)
+                        self._attr_description = self.jpi.advanced_travel_plan(trips)
                     params = {
                         ATTR_ACCESSIBILITY: "Wheel chair accessible" if accessibility else "Not wheel chair accessible",
                         ATTR_DIRECTION: direction,
@@ -227,4 +233,5 @@ class VasttrafikDepartureSensor(SensorEntity):
 
                     self._attributes = {k: v for k, v in params.items() if v}
                     break
+
 
