@@ -320,6 +320,35 @@ def trip_details_reduction (details_reference):
         return_list.append(new_dict)
         return return_list
 
+def get_eta (self, trip):
+    #trip requires triplegs from get_journeys, ie get_journeys(origin, dest)["results"][x]["tripLegs"], where x = 0, 1, 2, 3....
+    if len(trip)>1:
+        return get_eta_transfer(trip)
+    else:
+        return get_eta_no_transfer(trip)
+    #returns a list regardless of length
+
+def get_eta_transfer(trip):
+    trip_eta_with_transfer = []
+    for x in range(len(trip)):
+        estTime = datetime.fromisoformat(trip[x]["estimatedArrivalTime"])
+        formatted_timestamp = estTime.strftime('%H:%M')
+        trip_eta_with_transfer.append(formatted_timestamp)
+    return trip_eta_with_transfer
+
+
+def get_eta_no_transfer(trip):
+    estTime = datetime.fromisoformat(trip[0]["estimatedArrivalTime"])
+    formatted_timestamp = estTime.strftime('%H:%M')
+    trip_eta = [formatted_timestamp]
+    return trip_eta
+
+def compare_time (time):
+    from datetime import datetime
+    current_dateTime = datetime.now()
+    formatted_dateTime = current_dateTime.strftime('%H:%M')
+    difference = time - formatted_dateTime
+    return difference
 
 
 
