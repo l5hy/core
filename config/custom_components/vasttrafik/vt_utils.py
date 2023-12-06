@@ -100,6 +100,39 @@ class JPImpl:
             trips.append(dict[x]["tripLegs"])
         return trips
 
+    def get_eta (self, trip):
+    #trip requires triplegs from get_journeys, ie get_journeys(origin, dest)["results"][x]["tripLegs"], where x = 0, 1, 2, 3....
+        if len(trip)>1:
+            return self.get_eta_transfer(trip)
+        else:
+            return self.get_eta_no_transfer(trip)
+    #returns a list regardless of length
+
+    def get_eta_transfer(self, trip):
+        trip_eta_with_transfer = []
+        for x in range(len(trip)):
+            estTime = datetime.fromisoformat(trip[x]["estimatedArrivalTime"])
+            formatted_timestamp = estTime.strftime('%H:%M')
+            trip_eta_with_transfer.append(formatted_timestamp)
+        return trip_eta_with_transfer
+
+
+    def get_eta_no_transfer(self,trip):
+        estTime = datetime.fromisoformat(trip[0]["estimatedArrivalTime"])
+        formatted_timestamp = estTime.strftime('%H:%M')
+        trip_eta = [formatted_timestamp]
+        return trip_eta
+
+    def compare_time(self, time):
+        current_dateTime = datetime.now()
+        current_dateTime.replace(tzinfo=None)
+        time.replace(tzinfo=None)
+        # formatted_dateTime = current_dateTime.strftime('%H:%M')
+        difference = time - current_dateTime
+        return difference
+
+
+
     """
     def reduce_trips(self, trips):
         return_trips = []

@@ -35,7 +35,8 @@ CONF_LINES = "lines"
 
 DEFAULT_DELAY = 2
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
+
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -176,7 +177,7 @@ class VasttrafikDepartureSensor(SensorEntity):
 
     def notify(self):
         persistent_notification.async_create(
-            self.hass, "Your stop is nearing", title="Get down alert"
+            self.hass, "Your stop is nearing", title="Get off bus alert"
         )
         self.hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
 
@@ -201,7 +202,6 @@ class VasttrafikDepartureSensor(SensorEntity):
             self._attributes = {}
         else:
             for departure in self._departureboard:
-                self.notify()
                 line = departure["serviceJourney"]["line"].get("shortName")
                 if departure.get("isCancelled"):
                     continue
@@ -209,6 +209,7 @@ class VasttrafikDepartureSensor(SensorEntity):
                     if departure.get("estimatedTime"):
                         estTime = datetime.fromisoformat(departure.get("estimatedTime"))
                         formatted_timestamp = estTime.strftime('%H:%M')
+                        print(self.jpi.compare_time(formatted_timestamp))
                         self._state = formatted_timestamp
                     heading = self._heading.get('station_name') if self._heading else "-"
                     direction = departure["serviceJourney"].get("direction")
