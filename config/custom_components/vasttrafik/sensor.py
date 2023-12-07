@@ -137,7 +137,7 @@ class VasttrafikDepartureSensor(SensorEntity):
     def __init__(self, planner, name, departure, heading, delay, lines=None):
         """Initialize the sensor."""
         self._planner = planner
-        self._name = name if name else departure
+        self._name = departure + " -> " + heading if heading else departure
         self._departure = self.get_station_id(departure)
         self._heading = self.get_station_id(heading) if heading else None
         self.jpi = JPImpl()
@@ -149,6 +149,7 @@ class VasttrafikDepartureSensor(SensorEntity):
         self._delay = timedelta(minutes=delay)
         self._departureboard = None
         self._state = None
+        self._alert_eta = None
         self._attributes = None
 
     def get_station_id(self, location):
@@ -175,9 +176,9 @@ class VasttrafikDepartureSensor(SensorEntity):
         """Return the next departure time."""
         return self._state
 
-    def notify(self):
+    def notify(self, message="Your stop is nearing"):
         persistent_notification.async_create(
-            self.hass, "Your stop is nearing", title="Get off bus alert"
+            self.hass, message,title="Stop nearing alert"
         )
         self.hass.bus.async_fire(EVENT_HOMEASSISTANT_STARTED)
 
@@ -209,7 +210,6 @@ class VasttrafikDepartureSensor(SensorEntity):
                     if departure.get("estimatedTime"):
                         estTime = datetime.fromisoformat(departure.get("estimatedTime"))
                         formatted_timestamp = estTime.strftime('%H:%M')
-                        print(self.jpi.compare_time(estTime))
                         self._state = formatted_timestamp
                     heading = self._heading.get('station_name') if self._heading else "-"
                     direction = departure["serviceJourney"].get("direction")
@@ -217,7 +217,15 @@ class VasttrafikDepartureSensor(SensorEntity):
                     accessibility = departure["serviceJourney"]["line"].get("isWheelchairAccessible")
                     if self._heading:
                         journeys = self._planner.get_journeys(self._departure.get('station_id'), self._heading.get('station_id'))
-                        journey_details = journeys["results"][0]["tripLegs"][0]["serviceJourney"]
+                        trips = self.jpi.possible_trips(self._departure.get('station_id'), self._heading.get('station_id'))
+                        eta = self.jpi.get_eta(trips)
+                        if not self._alert_eta:
+                            self._alert_eta = eta
+                        for e in self._alert_eta:
+                            if self.jpi.compare_time(e) <= 0:
+                                eta_alert ="We are now nearing "+self._heading["station_name"]+". Get ready to get off ;)"
+                                self.notify(message=eta_alert)
+                        journey_details = journeys["results"][1]["tripLegs"][0]["serviceJourney"]
                         direction = journey_details["direction"]
                         accessibility = journey_details["line"].get("isWheelchairAccessible")
                         line = journey_details["line"].get("transportMode").capitalize() +" "+journey_details["line"].get("shortName")

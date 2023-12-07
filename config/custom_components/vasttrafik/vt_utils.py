@@ -1,5 +1,6 @@
 from datetime import timedelta
 from datetime import datetime
+from dateutil import tz
 
 import requests
 import json
@@ -89,6 +90,7 @@ class JourneyPlanner:
         return self.api_call(f'stop-points/{gid}/departures/{detailsReference}/details')['serviceJourneys']
 
 
+
 class JPImpl:
     def __init__(self):
         self.jp = JourneyPlanner()
@@ -96,8 +98,8 @@ class JPImpl:
     def possible_trips(self, start, stop):
         dict = self.jp.get_journeys(start, stop)["results"]
         trips = []
-        for x in range (0, len(dict)):
-            trips.append(dict[x]["tripLegs"])
+        for x in range (1, len(dict)):
+            trips.append(dict[x].get("tripLegs"))
         return trips
 
     def get_eta (self, trip):
@@ -110,21 +112,24 @@ class JPImpl:
 
     def get_eta_transfer(self, trip):
         trip_eta_with_transfer = []
-        for x in range(len(trip)):
-            estTime = datetime.fromisoformat(trip[x]["estimatedArrivalTime"])
-            formatted_timestamp = estTime.strftime('%H:%M')
-            trip_eta_with_transfer.append(formatted_timestamp)
+        for t in trip:
+            estTime = datetime.fromisoformat(t[0].get("estimatedArrivalTime"))
+            trip_eta_with_transfer.append(estTime)
+
+        # for x in range(len(trip)):
+        #     print(trip[x][0])
+        #     estTime = datetime.fromisoformat(trip[x][0]["estimatedArrivalTime"])
+        #     formatted_timestamp = estTime.strftime('%H:%M')
+        #     trip_eta_with_transfer.append(formatted_timestamp)
         return trip_eta_with_transfer
 
 
     def get_eta_no_transfer(self,trip):
         estTime = datetime.fromisoformat(trip[0]["estimatedArrivalTime"])
-        formatted_timestamp = estTime.strftime('%H:%M')
-        trip_eta = [formatted_timestamp]
+        trip_eta = [estTime]
         return trip_eta
 
     def compare_time(self, time):
-        from dateutil import tz
         cet = tz.gettz("Europe/Stockholm")
         current_dateTime = datetime.now(cet)
         d = time - current_dateTime
