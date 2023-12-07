@@ -209,7 +209,7 @@ class VasttrafikDepartureSensor(SensorEntity):
                     if departure.get("estimatedTime"):
                         estTime = datetime.fromisoformat(departure.get("estimatedTime"))
                         formatted_timestamp = estTime.strftime('%H:%M')
-                        print(self.jpi.compare_time(formatted_timestamp))
+                        print(self.jpi.compare_time(estTime))
                         self._state = formatted_timestamp
                     heading = self._heading.get('station_name') if self._heading else "-"
                     direction = departure["serviceJourney"].get("direction")
