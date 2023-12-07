@@ -124,11 +124,11 @@ class JPImpl:
         return trip_eta
 
     def compare_time(self, time):
-        current_dateTime = datetime.now()
-        current_dateTime.replace(tzinfo=None)
-        time.replace(tzinfo=None)
-        # formatted_dateTime = current_dateTime.strftime('%H:%M')
-        difference = time - current_dateTime
+        from dateutil import tz
+        cet = tz.gettz("Europe/Stockholm")
+        current_dateTime = datetime.now(cet)
+        d = time - current_dateTime
+        difference = d.total_seconds()/60
         return difference
 
 
