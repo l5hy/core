@@ -125,6 +125,7 @@ def test():
     print(gid2)
     #print(possible_trips(gid, gid2))
     #print (reduce_trips(possible_trips(gid, gid2)))
+
     print(trip_details_reduction(jp.get_journeys(gid, gid2)["results"][0]["detailsReference"]))
 
 
