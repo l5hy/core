@@ -56,6 +56,9 @@ class JourneyPlanner:
     def get_journeys(self, origin, dest):
         return self.api_call('journeys?originGid='+str(origin)+'&destinationGid='+str(dest)+'&')
 
+    def get_journeys_details(self, detailsReference):
+        return self.api_call(f'journeys/{detailsReference}/details')
+
     # LOCATION
     def get_locations(self, name):
         return self.api_call('locations/by-text?q='+name)['results']
@@ -139,6 +142,169 @@ class JPImpl:
         d = time - current_dateTime
         difference = d.total_seconds()/60
         return difference
+
+    #Returns a list of dicts, based on the amount of transfers, with reduced amount of information, only information we need
+    #Sometimes there's a keyerror with the "estimatedDepartureTime" just ignore and run again, probably when the first part is to walk to the first stop.
+    def trip_details_reduction (self, details_reference):
+        trip_dict = self.jp.get_journeys_details(details_reference)
+        return_list = []
+        stop_number = 0
+        if len(trip_dict["tripLegs"]) > 1:
+            for y in range(0, len(trip_dict["tripLegs"])):
+                y_max = len(trip_dict["tripLegs"])-1
+                new_dict = {
+                    "line" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["line"]["name"],
+                    "direction" : trip_dict["tripLegs"][y]["serviceJourneys"][0]["direction"],
+                    "listOfStops" : {}
+                }
+                stops_dict = {
+                }
+                for z in range(0, len(trip_dict["tripLegs"][y]["callsOnTripLeg"])):
+                    z_max = len(trip_dict["tripLegs"][y]["callsOnTripLeg"])-1
+                    reference_object_stop = trip_dict["tripLegs"][y]["callsOnTripLeg"][z]["stopPoint"]
+                    reference_object_other = trip_dict["tripLegs"][y]["callsOnTripLeg"][z]
+                    if z == 0:
+                        stop_dict = {
+                            "relativeStopNumber" : z,
+                            "stopNumber" : stop_number,
+                            "name" : reference_object_stop["name"],
+                            "platform" : reference_object_stop["platform"],
+                            "gid" : reference_object_stop["gid"],
+                            "latitude" : reference_object_stop["latitude"],
+                            "longitude" : reference_object_stop["longitude"],
+                            "departure" : reference_object_other["estimatedDepartureTime"]
+
+                        }
+                        if y == 0:
+                            stop_dict["origin"] = True
+                        else:
+                            stop_dict["transferStart"] = True
+                        stops_dict[z] = stop_dict
+                    elif z == z_max:
+                        stop_dict = {
+                            "relativeStopNumber" : z,
+                            "stopNumber" : stop_number,
+                            "name" : reference_object_stop["name"],
+                            "platform" : reference_object_stop["platform"],
+                            "gid" : reference_object_stop["gid"],
+                            "latitude" : reference_object_stop["latitude"],
+                            "longitude" : reference_object_stop["longitude"],
+                            "arrival" : reference_object_other["estimatedArrivalTime"],
+                        }
+                        if y == y_max:
+                            stop_dict["destination"] = True
+                        else:
+                            stop_dict["transferStop"] = True
+                        stops_dict[z] = stop_dict
+                    else:
+                        stop_dict = {
+                            "relativeStopNumber" : z,
+                            "stopNumber" : stop_number,
+                            "name" : reference_object_stop["name"],
+                            "platform" : reference_object_stop["platform"],
+                            "gid" : reference_object_stop["gid"],
+                            "latitude" : reference_object_stop["latitude"],
+                            "longitude" : reference_object_stop["longitude"],
+                            "arrival" : reference_object_other["estimatedArrivalTime"],
+                            "departure" : reference_object_other["estimatedDepartureTime"]
+                        }
+                        stops_dict[z] = stop_dict
+                        stop_number+=1
+                new_dict["listOfStops"] = stops_dict
+                return_list.append(new_dict)
+            return return_list
+
+        else:
+            new_dict = {
+                "line" : trip_dict["tripLegs"][0]["serviceJourneys"][0]["line"]["name"],
+                "direction" : trip_dict["tripLegs"][0]["serviceJourneys"][0]["direction"],
+                "listOfStops" : {}
+            }
+            stops_dict = {
+            }
+            for z in range(0, len(trip_dict["tripLegs"][0]["callsOnTripLeg"])):
+                reference_object_stop = trip_dict["tripLegs"][0]["callsOnTripLeg"][z]["stopPoint"]
+                reference_object_other = trip_dict["tripLegs"][0]["callsOnTripLeg"][z]
+                if z == 0:
+                    stop_dict = {
+                        "origin" : True,
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "departure" : reference_object_other["estimatedDepartureTime"]
+                        }
+                    stops_dict[z] = stop_dict
+                elif z == len(trip_dict["tripLegs"][0]["callsOnTripLeg"])-1:
+                    stop_dict = {
+                        "destination" : True,
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "arrival" : reference_object_other["estimatedArrivalTime"],
+                        #"departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                    stops_dict[z] = stop_dict
+                else:
+                    stop_dict = {
+                        "relativeStopNumber" : z,
+                        "stopNumber" : stop_number,
+                        "name" : reference_object_stop["name"],
+                        "platform" : reference_object_stop["platform"],
+                        "gid" : reference_object_stop["gid"],
+                        "latitude" : reference_object_stop["latitude"],
+                        "longitude" : reference_object_stop["longitude"],
+                        "arrival" : reference_object_other["estimatedArrivalTime"],
+                        "departure" : reference_object_other["estimatedDepartureTime"]
+                    }
+                    stops_dict[z] = stop_dict
+                    stop_number+=1
+            new_dict["listOfStops"] = stops_dict
+            return_list.append(new_dict)
+            return return_list
+
+    #Requires the output from the trip_details_reduction function
+    #Outputs a list of dicts containing latitudes and longitudes, along with if it's a special type of stop in the form of the "type" key.
+    def get_coords(details_list):
+        return_list = []
+        if len(details_list) > 1:
+            for d in details_list:
+                for x in range(len(d["listOfStops"])):
+                    temp_dict = d["listOfStops"][x]
+                    new_dict = {
+                        "latitude": temp_dict["latitude"],
+                        "longitude": temp_dict["longitude"]
+                    }
+                    if "origin" in temp_dict:
+                        new_dict["type"] = "origin"
+                    elif "transferStart" in temp_dict:
+                        new_dict["type"] = "transferStart"
+                    elif "transferStop" in temp_dict:
+                        new_dict["type"] = "transferStop"
+                    elif "destination" in temp_dict:
+                        new_dict["type"] = "destination"
+                    return_list.append(new_dict)
+        else:
+            for x in range(len(details_list[0]["listOfStops"])):
+                temp_dict = details_list[0]["listOfStops"][x]
+                new_dict = {
+                    "latitude": temp_dict["latitude"],
+                    "longitude": temp_dict["longitude"]
+                    }
+                if "origin" in temp_dict:
+                    new_dict["type"] = "origin"
+                elif "destination" in temp_dict:
+                    new_dict["type"] = "destination"
+                return_list.append(new_dict)
+        return return_list
+
 
     def advanced_travel_plan(self, trips):
         return_trips = []
