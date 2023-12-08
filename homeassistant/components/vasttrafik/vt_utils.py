@@ -142,14 +142,14 @@ def test_simple_travel_plan():
     print()
     print("______________________________________________________________")
 
-
+#Returns all the tripLegs items from jp.get_journeys, meaning references, reconstruction and details, are not included.
 def possible_trips(start, stop):
     dict = jp.get_journeys(start, stop)["results"]
     trips = []
     for x in range (0, len(dict)):
         trips.append(dict[x]["tripLegs"])
     return trips
-
+#Probably deprecated, returns a list of trip instructions, name doesn't make sense
 def reduce_trips (trips):
     return_trips = []
     for x in range(len(trips)):
@@ -169,14 +169,14 @@ def reduce_trips (trips):
             string = "Board " + trips[x][0]["serviceJourney"]["line"]["name"] + " at stop " + trips[x][0]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][0]["origin"]["stopPoint"]["platform"] + ". " + "Exit vehicle at " + trips[x][0]["destination"]["stopPoint"]["name"] + " platform " + trips[x][0]["destination"]["stopPoint"]["platform"] + ". "
             return_trips.append(string)
     return return_trips
-
+#Returns a list of detailed trips from jp.get_journeys
 def possible_trips_details(start, stop):
     path_dict = jp.get_journeys(start, stop)["results"]
     trips = []
     for x in range(len(path_dict)):
         trips.append(jp.get_journeys_details(path_dict[x]["detailsReference"]))
     return trips
-
+#Returns a list of dicts, based on the amount of transfers, with reduced amount of information, only information we need
 def trip_details_reduction (details_reference):
     trip_dict = jp.get_journeys_details(details_reference)
     return_list = []

@@ -100,6 +100,7 @@ class JPImpl:
             trips.append(dict[x]["tripLegs"])
         return trips
 
+    #Returns a list of estimated times of arrival, if there is no transfer during the trip the length will be 1, increasing with the amount of transfers
     def get_eta (self, trip):
     #trip requires triplegs from get_journeys, ie get_journeys(origin, dest)["results"][x]["tripLegs"], where x = 0, 1, 2, 3....
         if len(trip)>1:
@@ -108,6 +109,7 @@ class JPImpl:
             return self.get_eta_no_transfer(trip)
     #returns a list regardless of length
 
+    #Part of get_eta, function specifically for trips with transfers
     def get_eta_transfer(self, trip):
         trip_eta_with_transfer = []
         for x in range(len(trip)):
@@ -116,13 +118,15 @@ class JPImpl:
             trip_eta_with_transfer.append(formatted_timestamp)
         return trip_eta_with_transfer
 
-
+    #Part of get_eta, function specifically for trips without transfers
     def get_eta_no_transfer(self,trip):
         estTime = datetime.fromisoformat(trip[0]["estimatedArrivalTime"])
         formatted_timestamp = estTime.strftime('%H:%M')
         trip_eta = [formatted_timestamp]
         return trip_eta
 
+    #Returns the time difference between the "time" variable and the current time in minutes. "time" needs to be a datetime object from a trip dict.
+    #needs to be extracted using the datetime.fromisoformat() function.
     def compare_time(self, time):
         from dateutil import tz
         cet = tz.gettz("Europe/Stockholm")
