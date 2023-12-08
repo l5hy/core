@@ -24,6 +24,7 @@ sensor:
         heading: Chalmers
       - from: Styrsö Bratten
         heading: Bifrost
+      - from: Storgatan
   # - platform: template # defining sensor, the template for traffic situation
   #   sensors:
   #     formatted_traffic_data_sensor:
