@@ -1,5 +1,6 @@
 from datetime import timedelta
 from datetime import datetime
+from dateutil import tz
 
 import requests
 import json
@@ -89,6 +90,7 @@ class JourneyPlanner:
         return self.api_call(f'stop-points/{gid}/departures/{detailsReference}/details')['serviceJourneys']
 
 
+
 class JPImpl:
     def __init__(self):
         self.jp = JourneyPlanner()
@@ -96,8 +98,8 @@ class JPImpl:
     def possible_trips(self, start, stop):
         dict = self.jp.get_journeys(start, stop)["results"]
         trips = []
-        for x in range (0, len(dict)):
-            trips.append(dict[x]["tripLegs"])
+        for x in range (1, len(dict)):
+            trips.append(dict[x].get("tripLegs"))
         return trips
 
     #Returns a list of estimated times of arrival, if there is no transfer during the trip the length will be 1, increasing with the amount of transfers
@@ -112,79 +114,31 @@ class JPImpl:
     #Part of get_eta, function specifically for trips with transfers
     def get_eta_transfer(self, trip):
         trip_eta_with_transfer = []
-        for x in range(len(trip)):
-            estTime = datetime.fromisoformat(trip[x]["estimatedArrivalTime"])
-            formatted_timestamp = estTime.strftime('%H:%M')
-            trip_eta_with_transfer.append(formatted_timestamp)
+        for t in trip:
+            estTime = datetime.fromisoformat(t[0].get("estimatedArrivalTime"))
+            trip_eta_with_transfer.append(estTime)
+
+        # for x in range(len(trip)):
+        #     print(trip[x][0])
+        #     estTime = datetime.fromisoformat(trip[x][0]["estimatedArrivalTime"])
+        #     formatted_timestamp = estTime.strftime('%H:%M')
+        #     trip_eta_with_transfer.append(formatted_timestamp)
         return trip_eta_with_transfer
 
     #Part of get_eta, function specifically for trips without transfers
     def get_eta_no_transfer(self,trip):
         estTime = datetime.fromisoformat(trip[0]["estimatedArrivalTime"])
-        formatted_timestamp = estTime.strftime('%H:%M')
-        trip_eta = [formatted_timestamp]
+        trip_eta = [estTime]
         return trip_eta
 
     #Returns the time difference between the "time" variable and the current time in minutes. "time" needs to be a datetime object from a trip dict.
     #needs to be extracted using the datetime.fromisoformat() function.
     def compare_time(self, time):
-        from dateutil import tz
         cet = tz.gettz("Europe/Stockholm")
         current_dateTime = datetime.now(cet)
         d = time - current_dateTime
         difference = d.total_seconds()/60
         return difference
-
-
-
-    """
-    def reduce_trips(self, trips):
-        return_trips = []
-        for x in range(1):
-            string = ""
-            if len(trips[x]) > 1:
-                z=0
-                for y in range(0, len(trips[x])-1):
-                    if y == 0:
-                        string = "Board " + trips[x][y]["serviceJourney"]["line"]["name"] + " at stop " + trips[x][y]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][y]["origin"]["stopPoint"]["platform"] + ". " + "Transfer at " + trips[x][y]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][y]["destination"]["stopPoint"]["platform"] + " to " + trips[x][y+1]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][y+1]["origin"]["stopPoint"]["platform"] + " and board " + trips[x][y+1]["serviceJourney"]["line"]["name"] +  ". "
-                    if y > 0:
-                        string = string + "Then transfer at " + trips[x][y]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][y]["destination"]["stopPoint"]["platform"] + " to " + trips[x][y+1]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][y+1]["origin"]["stopPoint"]["platform"] + " and board " + trips[x][y+1]["serviceJourney"]["line"]["name"] +  ". "
-                    z = 0 + y
-                string = string + "Finally exit vehicle at " + trips[x][z]["destination"]["stopPoint"]["name"] + ", platform " + trips[x][z]["destination"]["stopPoint"]["platform"] + ". \n\n"
-                return_trips.append(string)
-            else:
-                string = "Board " + trips[x][0]["serviceJourney"]["line"]["name"] + " at stop " + trips[x][0]["origin"]["stopPoint"]["name"] + ", platform " + trips[x][0]["origin"]["stopPoint"]["platform"] + ". " + "Exit vehicle at " + trips[x][0]["destination"]["stopPoint"]["name"] + " platform " + trips[x][0]["destination"]["stopPoint"]["platform"] + ". \n\n"
-                return_trips.append(string)
-        return return_trips
-
-    def simple_travel_plan(self, start, stop):
-        dict = self.jp.get_journeys(start, stop)["results"]
-        trips = []
-        for x in range (0, len(dict)):
-            trips.append(dict[x]["tripLegs"])
-        bestTrip = trips[0][0]
-        #print(bestTrip)
-        print("Estimated Departure: " + bestTrip["origin"]["estimatedTime"])
-        print("Line: " + bestTrip["serviceJourney"]["line"]["name"])
-        print("From: " + bestTrip["origin"]["stopPoint"]["name"] + " platform " + bestTrip["origin"]["stopPoint"]["platform"])
-        print("To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"])
-        print("Estimated Arrival: " + bestTrip["destination"]["estimatedTime"])
-        return
-
-    def advanced_travel_plan(self, trips):
-        return_trips = []
-        string = ""
-        bestTrip = trips[0][0]
-        # print(bestTrip)
-        if bestTrip["origin"].get("estimatedTime"):
-            string = ("Estimated Departure: " + datetime.fromisoformat(bestTrip["origin"]["estimatedTime"]).strftime('%H:%M')
-                  + ", Line: " + bestTrip["serviceJourney"]["line"].get("shortName")
-                  + ", From: " + bestTrip["origin"]["stopPoint"]["name"] + " platform " + bestTrip["origin"]["stopPoint"]["platform"]
-                  + ", To: " + bestTrip["destination"]["stopPoint"]["name"] + " platform " + bestTrip["destination"]["stopPoint"]["platform"]
-                  + ", Estimated Arrival: " + datetime.fromisoformat(bestTrip["destination"]["estimatedTime"]).strftime('%H:%M'))
-        return_trips.append(string)
-        return return_trips
-    """
 
     def advanced_travel_plan(self, trips):
         return_trips = []
@@ -220,6 +174,10 @@ class JPImpl:
                     + ", Estimated Arrival: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
         return_trips.append(trip_description)
         return return_trips
+
+    def get_occupancy_level(self, trips):
+        next_trip = trips[0]
+
 
     def nearby_stops(self):
         stops = self.jp.get_locations_lat_long(str(57.708110), str(11.938043))
