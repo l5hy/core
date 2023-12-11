@@ -313,7 +313,7 @@ class JPImpl:
         if len(next_trip) > 1:
             for x in range(0, len(trips)-1):
                 if x == 0:
-                    return_trips.append(datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M'))
+                    return_trips.append(datetime.fromisoformat(next_trip[x]["origin"].get("estimatedTime")).strftime('%H:%M'))
                     return_trips.append("Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M'))
                 elif x == len(next_trip) - 1:
                     return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
@@ -325,7 +325,7 @@ class JPImpl:
                         None
         else:
             if next_trip[0]["origin"].get("estimatedTime"):
-                return_trips.append(datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M'))
+                return_trips.append(datetime.fromisoformat(next_trip[0]["origin"].get("estimatedTime")).strftime('%H:%M'))
                 return_trips.append("Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[0]["origin"]["stopPoint"]["name"] + " platform " + next_trip[0]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M'))
                 return_trips.append("End Stop: " + next_trip[0]["destination"]["stopPoint"]["name"] + " platform " + next_trip[0]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
 
