@@ -54,7 +54,7 @@ class JourneyPlanner:
 
     # Journeys
     def get_journeys(self, origin, dest):
-        return self.api_call('journeys?originGid='+str(origin)+'&destinationGid='+str(dest)+'&')
+        return self.api_call('journeys?originGid='+str(origin)+'&destinationGid='+str(dest) + '&' + '&includeOccupancy=true&')
 
     def get_journeys_details(self, detailsReference):
         return self.api_call(f'journeys/{detailsReference}/details')
@@ -314,28 +314,24 @@ class JPImpl:
             for x in range(0, len(trips)-1):
                 if x == 0:
                     return_trips.append(datetime.fromisoformat(next_trip[x]["origin"].get("estimatedTime")).strftime('%H:%M'))
-                    return_trips.append("Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M'))
+                    return_trips.append("Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", From: " + next_trip[x]["origin"]["stopPoint"]["name"] + ", Platform " + next_trip[x]["origin"]["stopPoint"]["platform"] +
+                                        ", At: " + datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M') + ", Occupancy: " + next_trip[x]["occupancy"].get("level"))
                 elif x == len(next_trip) - 1:
-                    return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
-                    return_trips.append("End Stop: " + next_trip[x]["destination"]["stopPoint"]["name"] + " platform " + next_trip[x]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["destination"]["estimatedTime"]).strftime('%H:%M'))
+                    return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + ", Platform " + next_trip[x]["origin"]["stopPoint"]["platform"] + ", Occupancy: " + next_trip[x]["occupancy"].get("level"))
+                    return_trips.append("End Stop: " + next_trip[x]["destination"]["stopPoint"]["name"] + ", Platform " + next_trip[x]["destination"]["stopPoint"]["platform"] + ", At: " + datetime.fromisoformat(next_trip[x]["destination"]["estimatedTime"]).strftime('%H:%M'))
                 else:
                     try:
-                        return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
+                        return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + ", Platform " + next_trip[x]["origin"]["stopPoint"]["platform"] + ", Occupancy: " + next_trip[x]["occupancy"].get("level"))
                     except:
                         None
         else:
             if next_trip[0]["origin"].get("estimatedTime"):
                 return_trips.append(datetime.fromisoformat(next_trip[0]["origin"].get("estimatedTime")).strftime('%H:%M'))
-                return_trips.append("Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[0]["origin"]["stopPoint"]["name"] + " platform " + next_trip[0]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M'))
-                return_trips.append("End Stop: " + next_trip[0]["destination"]["stopPoint"]["name"] + " platform " + next_trip[0]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
+                return_trips.append("Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName") + ", From: " + next_trip[0]["origin"]["stopPoint"]["name"] + ", Platform " + next_trip[0]["origin"]["stopPoint"]["platform"] + ", At: " +
+                                    datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M') + ", Occupancy: " + next_trip[0]["occupancy"].get("level"))
+                return_trips.append("End Stop: " + next_trip[0]["destination"]["stopPoint"]["name"] + ", Platform " + next_trip[0]["destination"]["stopPoint"]["platform"] + ", At: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
 
-        return_trips.append("Occupancy Level: " + self.get_occupancy_level(trips))
         return return_trips
-
-
-    def get_occupancy_level(self, trips):
-        next_trip = trips[0]
-        return "temp level"
 
 
     def nearby_stops(self):
