@@ -129,9 +129,6 @@ def test():
     #    json.dump(json_data, outfile)
     #print(possible_trips(gid, gid2))
     #print (reduce_trips(possible_trips(gid, gid2)))
-    for x in range (len(jp.get_journeys(gid, gid2)["results"])):
-        if len(jp.get_journeys(gid, gid2)["results"][x]["tripLegs"]) > 1:
-            print(get_coords(trip_details_reduction(jp.get_journeys(gid, gid2)["results"][x]["detailsReference"])))
 
 
 
