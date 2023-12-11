@@ -308,41 +308,34 @@ class JPImpl:
 
     def advanced_travel_plan(self, trips):
         return_trips = []
-        trip_description= ""
         next_trip = trips[0]
 
         if len(next_trip) > 1:
             for x in range(0, len(trips)-1):
                 if x == 0:
-                    trip_description = (" Estimated Departure: " + datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M')
-                    + ", Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName")
-                    + ", From: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
+                    return_trips.append(datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M'))
+                    return_trips.append("Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M'))
                 elif x == len(next_trip) - 1:
-                    try:
-                        trip_description += (", Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName")
-                        + ", At : " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"]
-                        + ", End Stop: " + next_trip[x]["destination"]["stopPoint"]["name"] + " platform " + next_trip[x]["destination"]["stopPoint"]["platform"]
-                        + ", Estimated Arrival: " + datetime.fromisoformat(next_trip[x]["destination"]["estimatedTime"]).strftime('%H:%M'))
-                    except:
-                        None
+                    return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
+                    return_trips.append("End Stop: " + next_trip[x]["destination"]["stopPoint"]["name"] + " platform " + next_trip[x]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["destination"]["estimatedTime"]).strftime('%H:%M'))
                 else:
                     try:
-                        trip_description += (", Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName")
-                        + ", At : " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
+                        return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
                     except:
                         None
         else:
             if next_trip[0]["origin"].get("estimatedTime"):
-                trip_description = ("Estimated Departure: " + datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M')
-                    + ", Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName")
-                    + ", From: " + next_trip[0]["origin"]["stopPoint"]["name"] + " platform " + next_trip[0]["origin"]["stopPoint"]["platform"]
-                    + ", To: " + next_trip[0]["destination"]["stopPoint"]["name"] + " platform " + next_trip[0]["destination"]["stopPoint"]["platform"]
-                    + ", Estimated Arrival: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
-        return_trips.append(trip_description)
+                return_trips.append(datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M'))
+                return_trips.append("Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[0]["origin"]["stopPoint"]["name"] + " platform " + next_trip[0]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M'))
+                return_trips.append("End Stop: " + next_trip[0]["destination"]["stopPoint"]["name"] + " platform " + next_trip[0]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
+
+        return_trips.append("Occupancy Level: " + self.get_occupancy_level(trips))
         return return_trips
+
 
     def get_occupancy_level(self, trips):
         next_trip = trips[0]
+        return "temp level"
 
 
     def nearby_stops(self):

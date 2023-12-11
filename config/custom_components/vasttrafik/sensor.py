@@ -207,6 +207,8 @@ class VasttrafikDepartureSensor(SensorEntity):
                 if departure.get("isCancelled"):
                     continue
                 if not self._lines or line in self._lines:
+
+                    """
                     if departure.get("estimatedTime"):
                         estTime = datetime.fromisoformat(departure.get("estimatedTime"))
                         formatted_timestamp = estTime.strftime('%H:%M')
@@ -215,6 +217,7 @@ class VasttrafikDepartureSensor(SensorEntity):
                     direction = departure["serviceJourney"].get("direction")
                     line = departure["serviceJourney"]["line"].get("transportMode").capitalize() +" "+departure["serviceJourney"]["line"].get("shortName")
                     accessibility = departure["serviceJourney"]["line"].get("isWheelchairAccessible")
+                    occupancy = ""
                     if self._heading:
                         journeys = self._planner.get_journeys(self._departure.get('station_id'), self._heading.get('station_id'))
                         trips = self.jpi.possible_trips(self._departure.get('station_id'), self._heading.get('station_id'))
@@ -231,14 +234,43 @@ class VasttrafikDepartureSensor(SensorEntity):
                         line = journey_details["line"].get("transportMode").capitalize() +" "+journey_details["line"].get("shortName")
                         trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
                         self._attr_description = self.jpi.advanced_travel_plan(trips)
+                        occupancy = self.jpi.get_occupancy_level(trips)
                     params = {
                         ATTR_ACCESSIBILITY: "Wheel chair accessible" if accessibility else "Not wheel chair accessible",
                         ATTR_DIRECTION: direction,
                         ATTR_HEADING: heading,
                         ATTR_LINE: line,
                         ATTR_TRACK: departure["stopPoint"].get("platform"),
-                        ATTR_DESCRIPTION: self._attr_description
+                        ATTR_DESCRIPTION: self._attr_description,
+                        "Occupancy Level": occupancy
                     }
+                    """
+
+                    params = {}
+                    travel_info = ""
+
+                    if self._heading:
+                        journeys = self._planner.get_journeys(self._departure.get('station_id'), self._heading.get('station_id'))
+                        trips = self.jpi.possible_trips(self._departure.get('station_id'), self._heading.get('station_id'))
+                        eta = self.jpi.get_eta(trips)
+                        if not self._alert_eta:
+                            self._alert_eta = eta
+                        for e in self._alert_eta:
+                            if self.jpi.compare_time(e) <= 0:
+                                eta_alert ="We are now nearing "+self._heading["station_name"]+". Get ready to get off ;)"
+                                self.notify(message=eta_alert)
+                        journey_details = journeys["results"][1]["tripLegs"][0]["serviceJourney"]
+
+                        trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
+
+                        travel_info = self.jpi.advanced_travel_plan(trips)
+
+                        for string in travel_info:
+                            if string == travel_info[0]:
+                                self._state = travel_info[0]
+                            else:
+                                params[string] = " "
+                        params["Wheel chair accessible" if journey_details["line"].get("isWheelchairAccessible") else "Not wheel chair accessible"] = " "
 
                     self._attributes = {k: v for k, v in params.items() if v}
                     break
