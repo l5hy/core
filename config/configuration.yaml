@@ -1,0 +1,47 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+# automation:
+#   - !include automations.yaml
+#   - !include automation_traffic.yaml # added  Automation for updating the sensor states 'on' in traffic
+# script: !include scripts.yaml
+# scene: !include scenes.yaml
+sensor:
+  - platform: vasttrafik
+    departures:
+      - from: Brunnsparken
+        heading: Domkyrkan
+      - from: Brunnsparken
+        heading: Snipen
+      - from: Jungfruplatsen
+        heading: Lindholmen
+      - from: Bifrost
+        heading: Chalmers
+      - from: Styrsö Bratten
+        heading: Bifrost
+      - from: Storgatan
+  # - platform: template # defining sensor, the template for traffic situation
+  #   sensors:
+  #     formatted_traffic_data_sensor:
+  #       value_template: "{{ states('python_script.update_traffic_sensor_state') }}"
+# views:
+#   - title: My Map View
+#     icon: mdi:map
+#     cards:
+#       - type: map
+#         entities:
+#           - sensor.vasttrafik
+
+
+# creating sensor automation for traffic situation
+# python_script:
+#   update_traffic_sensor_state:
+#     alias: Update Traffic Sensor State
+#     sequence:
+#       - service: python_script.update_traffic_sensor_state
+#         data:
+#           formatted_traffic_data_sensor: "{{ data.formatted_traffic_data_sensor }}"
