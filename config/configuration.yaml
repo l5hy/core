@@ -10,7 +10,6 @@ frontend:
 #   - !include automation_traffic.yaml # added  Automation for updating the sensor states 'on' in traffic
 # script: !include scripts.yaml
 # scene: !include scenes.yaml
-
 sensor:
   - platform: vasttrafik
     departures:

@@ -1,16 +1,21 @@
 """Support for Västtrafik public transport."""
 from __future__ import annotations
 
-from datetime import timedelta, datetime
+from datetime import timedelta
 import logging
 
 from homeassistant.components import persistent_notification
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
+
+from homeassistant.helpers import location
+from homeassistant.helpers.entity import Entity
+
 from .vt_utils import JourneyPlanner, JPImpl
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.components.geo_location import GeolocationEvent
+from homeassistant.components import zone
 from homeassistant.const import CONF_DELAY, CONF_NAME
 from homeassistant.core import HomeAssistant
 import homeassistant.helpers.config_validation as cv
@@ -67,9 +72,25 @@ def setup_platform(
     nearby = jpi.nearby_stops()
     sensors = []
     geo_locations = []
+    stop_locations = []
+    # geo_lines = []
     for departure in config[CONF_DEPARTURES]:
-        loc = planner.get_locations(departure.get(CONF_FROM))[0]
-        geo_locations.append(VTGeolocationEvent(loc['name'], loc['latitude'],loc['longitude']))
+        org = planner.get_locations(departure.get(CONF_FROM))[0]
+        originGid = planner.get_locations(departure.get(CONF_FROM))[0]['gid']
+        route = ""
+        if departure.get(CONF_HEADING):
+            destGid = planner.get_locations(departure.get(CONF_HEADING))[0]['gid']
+            dest = planner.get_locations(departure.get(CONF_HEADING))[0]
+            route = departure.get(CONF_FROM) +" -> "+ departure.get(CONF_HEADING)
+        geo_locations.append(VTGeolocationEvent(org['name'], org['latitude'],org['longitude']))
+        geo_locations.append(VTGeolocationEvent(dest['name'], dest['latitude'],dest['longitude']))
+        journey = planner.get_journeys(originGid, destGid)
+        detailsRef = journey.get('results')[0].get('detailsReference')
+        detailsList = jpi.trip_details_reduction(detailsRef)
+        stop_coords = jpi.get_coords(detailsList)
+        for c in range(len(stop_coords)):
+            if (not c == 0) and (not c==len(stop_coords) - 1):
+                stop_locations.append(StopsGeolocationEvent(stop_coords[c].get('name') + " ("+route+ ")",stop_coords[c].get('latitude'), stop_coords[c].get('longitude')))
         sensors.append(
                 VasttrafikDepartureSensor(
                     planner,
@@ -89,15 +110,79 @@ def setup_platform(
             DEFAULT_DELAY,
             None,
         ))
-    add_entities(sensors)
     add_entities(geo_locations)
+    add_entities(stop_locations)
+    add_entities(sensors)
+    # available_entities = hass.states.async_entity_ids()[10:]
+    # for a in range(len(available_entities)-1):
+    #     geo_lines.append(GeolocationLine(available_entities[a], available_entities[a+1]))
+    # add_entities(geo_lines)
+
+
+class StopsGeolocationEvent(GeolocationEvent):
+    """Represents a geolocation event."""
+    _attr_should_poll = False
+    _attr_icon = "mdi:bus"
+    _attr_entity_picture = "https://png.pngtree.com/png-vector/20190118/ourmid/pngtree-vector-stop-icon-png-image_327307.jpg"
+    _attr_extra_state_attributes = {"lines ": True}
+    def __init__(
+        self,
+        name: str,
+        latitude: float,
+        longitude: float,
+    ) -> None:
+        """Initialize entity with data provided."""
+        self._attr_name = name
+        self._attr_source = "vt_entity"
+        self._latitude = latitude
+        self._longitude = longitude
+
+    @property
+    def source(self) -> str:
+        """Return source value of this external event."""
+        return SOURCE
+
+    @property
+    def latitude(self) -> float | None:
+        """Return latitude value of this external event."""
+        return self._latitude
+
+    @property
+    def longitude(self) -> float | None:
+        """Return longitude value of this external event."""
+        return self._longitude
+
+
+# class GeolocationLine(Entity):
+#     def __init__(self, entity_name_1, entity_name_2):
+#         self.entity_name_1 = entity_name_1
+#         self.entity_name_2 = entity_name_2
+
+#     async def async_added_to_hass(self):
+#         await super().async_added_to_hass()
+
+#         # Set the initial state of the line entity
+#         await self._update_line_entity()
+
+#     async def _update_line_entity(self):
+#         while True:
+#             # Get the latest coordinates of both entities
+#             if self.entity_name_1 is not None and self.entity_name_2 is not None:
+#                 coords_1 = self.hass.states.get(self.entity_name_1).attributes.get('latitude'), self.hass.states.get(self.entity_name_1).attributes.get('longitude')
+#                 coords_2 = self.hass.states.get(self.entity_name_2).attributes.get('latitude'), self.hass.states.get(self.entity_name_2).attributes.get('longitude')
+#                 # Update the state of the line entity with the coordinates
+#                 if coords_1 is not None and coords_2 is not None and self.entity_id is not None:
+#                     state = f"{coords_1[0]},{coords_1[1]},{coords_2[0]},{coords_2[1]}"
+#                     self.hass.states.async_set(self.entity_id, state, attributes={"lines": True})
+
 
 class VTGeolocationEvent(GeolocationEvent):
     """Represents a geolocation event."""
 
     _attr_should_poll = False
     _attr_icon = "mdi:bus"
-
+    _attr_entity_picture = "https://www.freepnglogos.com/uploads/pin-png/gps-location-map-pin-icon-2.png"
+    _attr_extra_state_attributes = {"lines ": True}
     def __init__(
         self,
         name: str,
@@ -110,7 +195,6 @@ class VTGeolocationEvent(GeolocationEvent):
         self._attr_source = "vt_entity"
         self._latitude = latitude
         self._longitude = longitude
-
 
     @property
     def source(self) -> str:
@@ -144,7 +228,7 @@ class VasttrafikDepartureSensor(SensorEntity):
         self._attr_description = "-"
         if heading:
             trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
-            self._attr_description = self.jpi.advanced_travel_plan(trips)
+            # self._attr_description = self.jpi.advanced_travel_plan(trips)
         self._lines = lines
         self._delay = timedelta(minutes=delay)
         self._departureboard = None
@@ -207,10 +291,8 @@ class VasttrafikDepartureSensor(SensorEntity):
                 if departure.get("isCancelled"):
                     continue
                 if not self._lines or line in self._lines:
-
                     params = {}
                     travel_info = ""
-
                     if self._heading:
                         journeys = self._planner.get_journeys(self._departure.get('station_id'), self._heading.get('station_id'))
                         trips = self.jpi.possible_trips(self._departure.get('station_id'), self._heading.get('station_id'))

@@ -54,7 +54,7 @@ class JourneyPlanner:
 
     # Journeys
     def get_journeys(self, origin, dest):
-        return self.api_call('journeys?originGid='+str(origin)+'&destinationGid='+str(dest)+'&')
+        return self.api_call('journeys?&originGid='+str(origin)+'&destinationGid='+str(dest)+'&')
 
     def get_journeys_details(self, detailsReference):
         return self.api_call(f'journeys/{detailsReference}/details')
@@ -123,14 +123,14 @@ class JPImpl:
 
         # for x in range(len(trip)):
         #     print(trip[x][0])
-        #     estTime = datetime.fromisoformat(trip[x][0]["estimatedArrivalTime"])
+        #     estTime = datetime.fromisoformat(trip[x][0].get("estimatedArrivalTime"))
         #     formatted_timestamp = estTime.strftime('%H:%M')
         #     trip_eta_with_transfer.append(formatted_timestamp)
         return trip_eta_with_transfer
 
     #Part of get_eta, function specifically for trips without transfers
     def get_eta_no_transfer(self,trip):
-        estTime = datetime.fromisoformat(trip[0]["estimatedArrivalTime"])
+        estTime = datetime.fromisoformat(trip[0].get("estimatedArrivalTime"))
         trip_eta = [estTime]
         return trip_eta
 
@@ -149,7 +149,9 @@ class JPImpl:
         trip_dict = self.jp.get_journeys_details(details_reference)
         return_list = []
         stop_number = 0
-        if len(trip_dict["tripLegs"]) > 1:
+        if trip_dict.get('tripLegs') is None:
+            return []
+        if len(trip_dict.get('tripLegs')) > 1:
             for y in range(0, len(trip_dict["tripLegs"])):
                 y_max = len(trip_dict["tripLegs"])-1
                 new_dict = {
@@ -172,7 +174,7 @@ class JPImpl:
                             "gid" : reference_object_stop["gid"],
                             "latitude" : reference_object_stop["latitude"],
                             "longitude" : reference_object_stop["longitude"],
-                            "departure" : reference_object_other["estimatedDepartureTime"]
+                            "departure" : reference_object_other.get("estimatedDepartureTime")
 
                         }
                         if y == 0:
@@ -189,7 +191,7 @@ class JPImpl:
                             "gid" : reference_object_stop["gid"],
                             "latitude" : reference_object_stop["latitude"],
                             "longitude" : reference_object_stop["longitude"],
-                            "arrival" : reference_object_other["estimatedArrivalTime"],
+                            "arrival" : reference_object_other.get("estimatedArrivalTime"),
                         }
                         if y == y_max:
                             stop_dict["destination"] = True
@@ -205,15 +207,14 @@ class JPImpl:
                             "gid" : reference_object_stop["gid"],
                             "latitude" : reference_object_stop["latitude"],
                             "longitude" : reference_object_stop["longitude"],
-                            "arrival" : reference_object_other["estimatedArrivalTime"],
-                            "departure" : reference_object_other["estimatedDepartureTime"]
+                            "arrival" : reference_object_other.get("estimatedArrivalTime"),
+                            "departure" : reference_object_other.get("estimatedDepartureTime")
                         }
                         stops_dict[z] = stop_dict
                         stop_number+=1
                 new_dict["listOfStops"] = stops_dict
                 return_list.append(new_dict)
             return return_list
-
         else:
             new_dict = {
                 "line" : trip_dict["tripLegs"][0]["serviceJourneys"][0]["line"]["name"],
@@ -235,7 +236,7 @@ class JPImpl:
                         "gid" : reference_object_stop["gid"],
                         "latitude" : reference_object_stop["latitude"],
                         "longitude" : reference_object_stop["longitude"],
-                        "departure" : reference_object_other["estimatedDepartureTime"]
+                        "departure" : reference_object_other.get("estimatedDepartureTime")
                         }
                     stops_dict[z] = stop_dict
                 elif z == len(trip_dict["tripLegs"][0]["callsOnTripLeg"])-1:
@@ -248,8 +249,8 @@ class JPImpl:
                         "gid" : reference_object_stop["gid"],
                         "latitude" : reference_object_stop["latitude"],
                         "longitude" : reference_object_stop["longitude"],
-                        "arrival" : reference_object_other["estimatedArrivalTime"],
-                        #"departure" : reference_object_other["estimatedDepartureTime"]
+                        "arrival" : reference_object_other.get("estimatedArrivalTime"),
+                        "departure" : reference_object_other.get("estimatedDepartureTime")
                     }
                     stops_dict[z] = stop_dict
                 else:
@@ -261,8 +262,8 @@ class JPImpl:
                         "gid" : reference_object_stop["gid"],
                         "latitude" : reference_object_stop["latitude"],
                         "longitude" : reference_object_stop["longitude"],
-                        "arrival" : reference_object_other["estimatedArrivalTime"],
-                        "departure" : reference_object_other["estimatedDepartureTime"]
+                        "arrival" : reference_object_other.get("estimatedArrivalTime"),
+                        "departure" : reference_object_other.get("estimatedDepartureTime")
                     }
                     stops_dict[z] = stop_dict
                     stop_number+=1
@@ -272,15 +273,18 @@ class JPImpl:
 
     #Requires the output from the trip_details_reduction function
     #Outputs a list of dicts containing latitudes and longitudes, along with if it's a special type of stop in the form of the "type" key.
-    def get_coords(details_list):
+    def get_coords(self, details_list):
         return_list = []
+        if len(details_list) == 0:
+            return return_list
         if len(details_list) > 1:
             for d in details_list:
                 for x in range(len(d["listOfStops"])):
                     temp_dict = d["listOfStops"][x]
                     new_dict = {
                         "latitude": temp_dict["latitude"],
-                        "longitude": temp_dict["longitude"]
+                        "longitude": temp_dict["longitude"],
+                        "name": temp_dict["name"]
                     }
                     if "origin" in temp_dict:
                         new_dict["type"] = "origin"
@@ -296,7 +300,8 @@ class JPImpl:
                 temp_dict = details_list[0]["listOfStops"][x]
                 new_dict = {
                     "latitude": temp_dict["latitude"],
-                    "longitude": temp_dict["longitude"]
+                    "longitude": temp_dict["longitude"],
+                    "name": temp_dict["name"]
                     }
                 if "origin" in temp_dict:
                     new_dict["type"] = "origin"
@@ -314,10 +319,10 @@ class JPImpl:
             for x in range(0, len(trips)-1):
                 if x == 0:
                     return_trips.append(datetime.fromisoformat(next_trip[x]["origin"].get("estimatedTime")).strftime('%H:%M'))
-                    return_trips.append("Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["origin"]["estimatedTime"]).strftime('%H:%M'))
+                    return_trips.append("Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["origin"].get("estimatedTime")).strftime('%H:%M'))
                 elif x == len(next_trip) - 1:
                     return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
-                    return_trips.append("End Stop: " + next_trip[x]["destination"]["stopPoint"]["name"] + " platform " + next_trip[x]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["destination"]["estimatedTime"]).strftime('%H:%M'))
+                    return_trips.append("End Stop: " + next_trip[x]["destination"]["stopPoint"]["name"] + " platform " + next_trip[x]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[x]["destination"].get("estimatedTime")).strftime('%H:%M'))
                 else:
                     try:
                         return_trips.append("Swap to Line: " + next_trip[x]["serviceJourney"]["line"].get("shortName") + ", At: " + next_trip[x]["origin"]["stopPoint"]["name"] + " platform " + next_trip[x]["origin"]["stopPoint"]["platform"])
@@ -326,8 +331,8 @@ class JPImpl:
         else:
             if next_trip[0]["origin"].get("estimatedTime"):
                 return_trips.append(datetime.fromisoformat(next_trip[0]["origin"].get("estimatedTime")).strftime('%H:%M'))
-                return_trips.append("Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[0]["origin"]["stopPoint"]["name"] + " platform " + next_trip[0]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["origin"]["estimatedTime"]).strftime('%H:%M'))
-                return_trips.append("End Stop: " + next_trip[0]["destination"]["stopPoint"]["name"] + " platform " + next_trip[0]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["destination"]["estimatedTime"]).strftime('%H:%M'))
+                return_trips.append("Line: " + next_trip[0]["serviceJourney"]["line"].get("shortName") + " From: " + next_trip[0]["origin"]["stopPoint"]["name"] + " platform " + next_trip[0]["origin"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["origin"].get("estimatedTime")).strftime('%H:%M'))
+                return_trips.append("End Stop: " + next_trip[0]["destination"]["stopPoint"]["name"] + " platform " + next_trip[0]["destination"]["stopPoint"]["platform"] + " At: " + datetime.fromisoformat(next_trip[0]["destination"].get("estimatedTime")).strftime('%H:%M'))
 
         return_trips.append("Occupancy Level: " + self.get_occupancy_level(trips))
         return return_trips
