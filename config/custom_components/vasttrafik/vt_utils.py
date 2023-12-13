@@ -1,7 +1,9 @@
 from datetime import timedelta
 from datetime import datetime
 from dateutil import tz
-
+import geopy.geocoders
+from geopy import exc
+import sys
 import requests
 import json
 
@@ -383,7 +385,7 @@ class JPImpl:
 
         return return_trips
 
-
+#get nearby stops
     def nearby_stops(self):
         stops = self.jp.get_locations_lat_long(str(57.708110), str(11.938043))
         nearest_stops = {stop["name"]: stop["straightLineDistanceInMeters"] for stop in stops}
@@ -393,3 +395,30 @@ class JPImpl:
         # for stop in list_stops:
         #     print(f'{"".join(stop[:-1])}  -  {stop[-1]} meters')
         return list_stops
+
+
+#getting nearby stops by entering the location
+
+    #def find_nearest_stops(self):
+        #print("Enter the location you want to find coordinates for:")
+        #location_name = sys.stdin.readline().strip()
+
+        #geocoder = geopy.geocoders.Nominatim(user_agent="Vasttrafik")
+
+        #try:
+            #location = geocoder.geocode(location_name)
+            #print(location.address)
+        #except exc.GeocoderNotFound:
+            #print("Location not found")
+
+        #stops = self.jp.get_locations_lat_long(location.latitude, location.longitude)
+
+        #nearest_stops = {stop["name"]: stop["straightLineDistanceInMeters"] for stop in stops}
+        #sorted_stops = sorted(nearest_stops.items(), key=lambda x: x[1])
+
+        #print("Nearest Stops are:")
+        #for stop in sorted_stops:
+            #print(f'{"".join(stop[:-1])}  -  {stop[-1]} meters')
+
+#Instantiate the class and call the function directly
+#JPImpl().find_nearest_stops()
