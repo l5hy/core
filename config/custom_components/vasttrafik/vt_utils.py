@@ -154,7 +154,7 @@ class JPImpl:
         return trips
 
     #Returns a list of estimated times of arrival, if there is no transfer during the trip the length will be 1, increasing with the amount of transfers
-    def get_estimated_arrival_time (self, trip):
+    def get_eta (self, trip):
     #trip requires triplegs from get_journeys, ie get_journeys(origin, dest)["results"][x]["tripLegs"], where x = 0, 1, 2, 3....
         if len(trip)>1:
             return self.get_eta_transfer(trip)
@@ -193,7 +193,7 @@ class JPImpl:
 
     #Returns a list of dicts, based on the amount of transfers, with reduced amount of information, only information we need
     #Sometimes there's a keyerror with the "estimatedDepartureTime" just ignore and run again, probably when the first part is to walk to the first stop.
-    def trip_details_format_reduction (self, details_reference):
+    def trip_details_reduction (self, details_reference):
         trip_dict = self.jp.get_journeys_details(details_reference)
         return_list = []
         stop_number = 0
