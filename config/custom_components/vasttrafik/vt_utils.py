@@ -116,7 +116,7 @@ class JPImpl:
 
         :param traffic_data: Raw traffic data from the API.
         :return: Formatted traffic data for the UI.
-    """    
+    """
     def format_traffic_data(self, traffic_data):
         formatted_data = []
 
@@ -368,11 +368,13 @@ class JPImpl:
                 return_list.append(new_dict)
         return return_list
 
-
+    # Function which given a list of trips (gotten from the above function possible_trips) will return an array with information about the closest upcomming trip.
+    # This information includes: departure time, departure location, departure line, potentital bus/tram/train/boat swaps with swap line and swap location, end stop location and arrival time.
     def advanced_travel_plan(self, trips):
         return_trips = []
         next_trip = trips[0]
 
+        # check if the trip contains any bus/tram/train/boat swaps
         if len(next_trip) > 1:
             for x in range(0, len(trips)-1):
                 if x == 0:
