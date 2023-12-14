@@ -87,7 +87,7 @@ def setup_platform(
         journey = planner.get_journeys(originGid, destGid)
         detailsRef = journey.get('results')[0].get('detailsReference')
         detailsList = jpi.trip_details_reduction(detailsRef)
-        stop_coords = jpi.get_all_trip_coordinates(detailsList)
+        stop_coords = jpi.get_coords(detailsList)
         for c in range(len(stop_coords)):
             if (not c == 0) and (not c==len(stop_coords) - 1):
                 stop_locations.append(StopsGeolocationEvent(stop_coords[c].get('name') + " ("+route+ ")",stop_coords[c].get('latitude'), stop_coords[c].get('longitude')))

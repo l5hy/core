@@ -321,7 +321,7 @@ class JPImpl:
 
     #Requires the output from the trip_details_reduction function
     #Outputs a list of dicts containing latitudes and longitudes, along with if it's a special type of stop in the form of the "type" key.
-    def get_all_trip_coordinates(self, details_list):
+    def get_coords(self, details_list):
         return_list = []
         if len(details_list) == 0:
             return return_list
