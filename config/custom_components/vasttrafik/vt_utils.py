@@ -111,13 +111,13 @@ class JPImpl:
     def __init__(self):
         self.jp = JourneyPlanner()
 
-    def format_traffic_data(self, traffic_data):
-        """
+    """
         Format traffic data for the UI.
 
         :param traffic_data: Raw traffic data from the API.
         :return: Formatted traffic data for the UI.
-        """
+    """    
+    def format_traffic_data(self, traffic_data):
         formatted_data = []
 
         for situation in traffic_data:
@@ -156,6 +156,11 @@ class JPImpl:
 
         return formatted_data
 
+class JPImpl:
+    def __init__(self):
+        self.jp = JourneyPlanner()
+
+    #Returns a list of all the tripLegs parts of the get_journeys function, using start and stop gid's. Does not include any of the reference codes.
     def possible_trips(self, start, stop):
         dict = self.jp.get_journeys(start, stop)["results"]
         trips = []
