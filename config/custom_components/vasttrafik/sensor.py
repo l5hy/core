@@ -47,18 +47,13 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_DEPARTURES): [
             {
-                vol.Optional(CONF_FROM): cv.string,
+                vol.Required(CONF_FROM): cv.string,
                 vol.Optional(CONF_DELAY, default=DEFAULT_DELAY): cv.positive_int,
-                vol.Optional(CONF_HEADING): cv.string,
-                vol.Optional(CONF_LINES, default=[]): vol.All(
-                    cv.ensure_list, [cv.string]
-                ),
-                vol.Optional(CONF_NAME): cv.string,
+                vol.Required(CONF_HEADING): cv.string,
             }
         ]
     }
 )
-
 
 def setup_platform(
     hass: HomeAssistant,
@@ -73,24 +68,14 @@ def setup_platform(
     sensors = []
     geo_locations = []
     stop_locations = []
-    # geo_lines = []
     for departure in config[CONF_DEPARTURES]:
         org = planner.get_locations(departure.get(CONF_FROM))[0]
+        dest = planner.get_locations(departure.get(CONF_HEADING))[0]
         originGid = planner.get_locations(departure.get(CONF_FROM))[0]['gid']
-        route = ""
-        if departure.get(CONF_HEADING):
-            destGid = planner.get_locations(departure.get(CONF_HEADING))[0]['gid']
-            dest = planner.get_locations(departure.get(CONF_HEADING))[0]
-            route = departure.get(CONF_FROM) +" -> "+ departure.get(CONF_HEADING)
+        destGid = planner.get_locations(departure.get(CONF_HEADING))[0]['gid']
+        route = departure.get(CONF_FROM) +" -> "+ departure.get(CONF_HEADING)
         geo_locations.append(VTGeolocationEvent(org['name'], org['latitude'],org['longitude']))
         geo_locations.append(VTGeolocationEvent(dest['name'], dest['latitude'],dest['longitude']))
-        journey = planner.get_journeys(originGid, destGid)
-        detailsRef = journey.get('results')[0].get('detailsReference')
-        detailsList = jpi.trip_details_reduction(detailsRef)
-        stop_coords = jpi.get_coords(detailsList)
-        for c in range(len(stop_coords)):
-            if (not c == 0) and (not c==len(stop_coords) - 1):
-                stop_locations.append(StopsGeolocationEvent(stop_coords[c].get('name') + " ("+route+ ")",stop_coords[c].get('latitude'), stop_coords[c].get('longitude')))
         sensors.append(
                 VasttrafikDepartureSensor(
                     planner,
@@ -98,25 +83,27 @@ def setup_platform(
                     departure.get(CONF_FROM),
                     departure.get(CONF_HEADING),
                     departure.get(CONF_DELAY),
-                    departure.get(CONF_LINES),
                 )
             )
+        journey = planner.get_journeys(originGid, destGid)
+        if journey:
+            detailsRef = journey.get('results')[0].get('detailsReference')
+            detailsList = jpi.trip_details_reduction(detailsRef)
+            stop_coords = jpi.get_coords(detailsList)
+            for c in range(len(stop_coords)):
+                if (not c == 0) and (not c==len(stop_coords) - 1):
+                    stop_locations.append(StopsGeolocationEvent(stop_coords[c].get('name') + " ("+route+ ")",stop_coords[c].get('latitude'), stop_coords[c].get('longitude')))
     for n in nearby:
         sensors.append(VasttrafikDepartureSensor(
             planner,
             n[0] + " (Nearby)",
             n[0],
-            None,
+            'Centralstation',
             DEFAULT_DELAY,
-            None,
         ))
     add_entities(geo_locations)
     add_entities(stop_locations)
     add_entities(sensors)
-    # available_entities = hass.states.async_entity_ids()[10:]
-    # for a in range(len(available_entities)-1):
-    #     geo_lines.append(GeolocationLine(available_entities[a], available_entities[a+1]))
-    # add_entities(geo_lines)
 
 
 class StopsGeolocationEvent(GeolocationEvent):
@@ -124,7 +111,6 @@ class StopsGeolocationEvent(GeolocationEvent):
     _attr_should_poll = False
     _attr_icon = "mdi:bus"
     _attr_entity_picture = "https://png.pngtree.com/png-vector/20190118/ourmid/pngtree-vector-stop-icon-png-image_327307.jpg"
-    _attr_extra_state_attributes = {"lines ": True}
     def __init__(
         self,
         name: str,
@@ -152,37 +138,12 @@ class StopsGeolocationEvent(GeolocationEvent):
         """Return longitude value of this external event."""
         return self._longitude
 
-
-# class GeolocationLine(Entity):
-#     def __init__(self, entity_name_1, entity_name_2):
-#         self.entity_name_1 = entity_name_1
-#         self.entity_name_2 = entity_name_2
-
-#     async def async_added_to_hass(self):
-#         await super().async_added_to_hass()
-
-#         # Set the initial state of the line entity
-#         await self._update_line_entity()
-
-#     async def _update_line_entity(self):
-#         while True:
-#             # Get the latest coordinates of both entities
-#             if self.entity_name_1 is not None and self.entity_name_2 is not None:
-#                 coords_1 = self.hass.states.get(self.entity_name_1).attributes.get('latitude'), self.hass.states.get(self.entity_name_1).attributes.get('longitude')
-#                 coords_2 = self.hass.states.get(self.entity_name_2).attributes.get('latitude'), self.hass.states.get(self.entity_name_2).attributes.get('longitude')
-#                 # Update the state of the line entity with the coordinates
-#                 if coords_1 is not None and coords_2 is not None and self.entity_id is not None:
-#                     state = f"{coords_1[0]},{coords_1[1]},{coords_2[0]},{coords_2[1]}"
-#                     self.hass.states.async_set(self.entity_id, state, attributes={"lines": True})
-
-
 class VTGeolocationEvent(GeolocationEvent):
     """Represents a geolocation event."""
 
     _attr_should_poll = False
     _attr_icon = "mdi:bus"
     _attr_entity_picture = "https://www.freepnglogos.com/uploads/pin-png/gps-location-map-pin-icon-2.png"
-    _attr_extra_state_attributes = {"lines ": True}
     def __init__(
         self,
         name: str,
@@ -217,20 +178,17 @@ class VasttrafikDepartureSensor(SensorEntity):
 
     _attr_attribution = "Data provided by Västtrafik"
     _attr_icon = "mdi:train"
-
-    def __init__(self, planner, name, departure, heading, delay, lines=None):
+    def __init__(self, planner, name, departure, heading, delay):
         """Initialize the sensor."""
         self._planner = planner
-        self._name = departure + " -> " + heading if heading else departure
+        self._name = departure + " -> " + heading
         self._departure = self.get_station_id(departure)
-        self._heading = self.get_station_id(heading) if heading else None
+        self._heading = self.get_station_id(heading)
         self.jpi = JPImpl()
-        self._attr_description = "-"
-        if heading:
-            trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
-            # self._attr_description = self.jpi.advanced_travel_plan(trips)
-        self._lines = lines
+        trips = self.jpi.possible_trips(self._departure["station_id"],self._heading["station_id"])
+        self._attr_description = self.jpi.advanced_travel_plan(trips)
         self._delay = timedelta(minutes=delay)
+        self._lines = None
         self._departureboard = None
         self._state = None
         self._alert_eta = None
