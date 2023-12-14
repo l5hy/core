@@ -10,6 +10,7 @@ import json
 AUTH_KEY = 'N1BtdXBSbW1qNlF0WjFRamVTVk1hVFBlVHd3YTowNTlDYUVBeW9qdnJ6RWhEcXdxVDAwQmNLbzhh'
 TOKEN_URL = 'https://ext-api.vasttrafik.se/token'
 API_BASE_URL = 'https://ext-api.vasttrafik.se/pr/v4'
+API_BASE_URL_TRAFFIC = 'https://ext-api.vasttrafik.se/ts/v1'
 DATE_FORMAT = '%Y-%m-%d'
 TIME_FORMAT = '%H:%M'
 
@@ -34,7 +35,15 @@ class JourneyPlanner:
     def _request(self, service, **parameters):
         """ request builder """
         urlformat = "{baseurl}/{service}?{parameters}&format=json"
-        url = urlformat.format(
+        if service == 'traffic-situations':
+            url = urlformat.format(
+            baseurl=API_BASE_URL_TRAFFIC,
+            service=service,
+            parameters="&".join([
+                "{}={}".format(key, value) for key, value in parameters.items()
+                ]))
+        else:
+            url = urlformat.format(
             baseurl=API_BASE_URL,
             service=service,
             parameters="&".join([
@@ -95,34 +104,14 @@ class JourneyPlanner:
         return self.api_call(f'stop-points/{gid}/departures/{detailsReference}/details')['serviceJourneys']
 
     def get_traffic_data(self):
-        """
-        Get traffic data from the API using the obtained token.
-        """
-        # Check if the token is still valid
-        if datetime.now() >= self._token_expire_date:
-            self.update_token()
+        return self.api_call('traffic-situations')
 
-        headers = {
-            "Authorization": "Bearer " + self._token,
-            "Content-Type": "application/json"
-        }
 
-        # the actual endpoint path
-        endpoint_url = API_BASE_URL + "/traffic-situations"
+class JPImpl:
+    def __init__(self):
+        self.jp = JourneyPlanner()
 
-        response = requests.get(endpoint_url, headers=headers)
-
-        if response.status_code == 200:
-            traffic_data = json.loads(response.content.decode("UTF-8"))
-            return self.format_traffic_data_for_ui(traffic_data)
-        else:
-            print(f"Failed to fetch traffic data. Status code: {response.status_code}")
-            print(f"Response content: {response.content.decode('UTF-8')}")
-            return None
-
-    ## The traffic data is formatted to extract the essential inputs.
-
-    def format_traffic_data_for_ui(self, traffic_data):
+    def format_traffic_data(self, traffic_data):
         """
         Format traffic data for the UI.
 
@@ -167,10 +156,6 @@ class JourneyPlanner:
 
         return formatted_data
 
-class JPImpl:
-    def __init__(self):
-        self.jp = JourneyPlanner()
-
     def possible_trips(self, start, stop):
         dict = self.jp.get_journeys(start, stop)["results"]
         trips = []
@@ -194,12 +179,6 @@ class JPImpl:
             if t[0].get("estimatedArrivalTime"):
                 estTime = datetime.fromisoformat(t[0].get("estimatedArrivalTime"))
                 trip_eta_with_transfer.append(estTime)
-
-        # for x in range(len(trip)):
-        #     print(trip[x][0])
-        #     estTime = datetime.fromisoformat(trip[x][0].get("estimatedArrivalTime"))
-        #     formatted_timestamp = estTime.strftime('%H:%M')
-        #     trip_eta_with_transfer.append(formatted_timestamp)
         return trip_eta_with_transfer
 
     #Part of get_eta, function specifically for trips without transfers
@@ -219,7 +198,7 @@ class JPImpl:
 
     #Returns a list of dicts, based on the amount of transfers, with reduced amount of information, only information we need
     #Sometimes there's a keyerror with the "estimatedDepartureTime" just ignore and run again, probably when the first part is to walk to the first stop.
-    def trip_details_reduction (self, details_reference):
+    def trip_details_reduction(self, details_reference):
         trip_dict = self.jp.get_journeys_details(details_reference)
         return_list = []
         stop_number = 0
@@ -412,15 +391,12 @@ class JPImpl:
 
         return return_trips
 
-#get nearby stops
+    #get nearby stops
     def nearby_stops(self):
         stops = self.jp.get_locations_lat_long(str(57.708110), str(11.938043))
         nearest_stops = {stop.get("name"): stop["straightLineDistanceInMeters"] for stop in stops}
         list_stops = list((nearest_stops.items()))
         list_stops.sort(key=lambda x: x[1])
-        # print("Nearest Stops are :")
-        # for stop in list_stops:
-        #     print(f'{"".join(stop[:-1])}  -  {stop[-1]} meters')
         return list_stops
 
 
