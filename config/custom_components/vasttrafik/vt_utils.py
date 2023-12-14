@@ -180,7 +180,7 @@ class JPImpl:
         return trips
 
     #Returns a list of estimated times of arrival, if there is no transfer during the trip the length will be 1, increasing with the amount of transfers
-    def get_eta (self, trip):
+    def get_estimated_arrival_time (self, trip):
     #trip requires triplegs from get_journeys, ie get_journeys(origin, dest)["results"][x].get("tripLegs"), where x = 0, 1, 2, 3....
         if len(trip)>1:
             return self.get_eta_transfer(trip)
@@ -211,7 +211,7 @@ class JPImpl:
 
     #Returns the time difference between the "time" variable and the current time in minutes. "time" needs to be a datetime object from a trip dict.
     #needs to be extracted using the datetime.fromisoformat() function.
-    def compare_time(self, time):
+    def get_time_difference_in_minutes(self, time):
         cet = tz.gettz("Europe/Stockholm")
         current_dateTime = datetime.now(cet)
         d = time - current_dateTime
@@ -348,7 +348,7 @@ class JPImpl:
 
     #Requires the output from the trip_details_reduction function
     #Outputs a list of dicts containing latitudes and longitudes, along with if it's a special type of stop in the form of the "type" key.
-    def get_coords(self, details_list):
+    def get_trip_stop_coordinates(self, details_list):
         return_list = []
         if len(details_list) == 0:
             return return_list
