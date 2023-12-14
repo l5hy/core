@@ -145,6 +145,7 @@ class JPImpl:
     def __init__(self):
         self.jp = JourneyPlanner()
 
+    #Returns a list of all the tripLegs parts of the get_journeys function, using start and stop gid's. Does not include any of the reference codes.
     def possible_trips(self, start, stop):
         dict = self.jp.get_journeys(start, stop)["results"]
         trips = []
@@ -153,7 +154,7 @@ class JPImpl:
         return trips
 
     #Returns a list of estimated times of arrival, if there is no transfer during the trip the length will be 1, increasing with the amount of transfers
-    def get_eta (self, trip):
+    def get_estimated_arrival_time (self, trip):
     #trip requires triplegs from get_journeys, ie get_journeys(origin, dest)["results"][x]["tripLegs"], where x = 0, 1, 2, 3....
         if len(trip)>1:
             return self.get_eta_transfer(trip)
@@ -192,7 +193,7 @@ class JPImpl:
 
     #Returns a list of dicts, based on the amount of transfers, with reduced amount of information, only information we need
     #Sometimes there's a keyerror with the "estimatedDepartureTime" just ignore and run again, probably when the first part is to walk to the first stop.
-    def trip_details_reduction (self, details_reference):
+    def trip_details_format_reduction (self, details_reference):
         trip_dict = self.jp.get_journeys_details(details_reference)
         return_list = []
         stop_number = 0
@@ -320,7 +321,7 @@ class JPImpl:
 
     #Requires the output from the trip_details_reduction function
     #Outputs a list of dicts containing latitudes and longitudes, along with if it's a special type of stop in the form of the "type" key.
-    def get_coords(self, details_list):
+    def get_all_trip_coordinates(self, details_list):
         return_list = []
         if len(details_list) == 0:
             return return_list
